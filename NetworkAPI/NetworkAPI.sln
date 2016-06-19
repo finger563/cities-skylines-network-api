@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkAPI", "NetworkAPI.csproj", "{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
