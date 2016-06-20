@@ -125,77 +125,54 @@ namespace NetworkAPI
 
     }
 
-    public struct Received
-    {
-        public IPEndPoint Sender;
-        public string Message;
-    }
-
-    abstract class UdpBase
-    {
-        protected UdpClient Client;
-
-        protected UdpBase()
-        {
-            Client = new UdpClient();
-        }
-
-    }
-
-    //Server
-    class UdpListener : UdpBase
-    {
-        private IPEndPoint _listenOn;
-
-        public UdpListener() : this(new IPEndPoint(IPAddress.Any, 32123))
-        {
-        }
-
-        public UdpListener(IPEndPoint endpoint)
-        {
-            _listenOn = endpoint;
-            Client = new UdpClient(_listenOn);
-        }
-        
-        public void Reply(string message,IPEndPoint endpoint)
-        {
-            var datagram = Encoding.ASCII.GetBytes(message);
-            Client.Send(datagram, datagram.Length, endpoint);
-        }
-
-    }
-
     public class ThreadingExension : ThreadingExtensionBase
     {
-        public static ManualResetEvent allDone = new ManualResetEvent(false);
 
-        static string host;
-        static int port;
-        static Socket listener;
+        UdpClient listener;
 
-        public void AsynchronousSocketListener()
+        public override void OnCreated(IThreading threading)
         {
-        }
-
-        public static void StartListening()
-        {
-            byte[] bytes = new Byte[1024];
-
-            // Establish the local endpoint
-            IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
-
-            listener = new Socket(AddressFamily.InterNetwork,
-                SocketType.Dgram, ProtocolType.Udp);
-
-            listener.Bind(localEndPoint);
+            base.OnCreated(threading);
+            try
+            {
+                IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 11000);
+                listener = new UdpClient(ipep);
+                listener.Client.ReceiveTimeout = 50;
+            }
+            catch (Exception e)
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    "Error creating listener: " + e.Message);
+            }
         }
 
         public override void OnAfterSimulationTick()
         {
-            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "AfterSimTick");
+            try
+            {
+                byte[] data = new byte[1024];
+
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Receiving!");
+
+                IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+                data = listener.Receive(ref sender);
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    "Got connection from: " + sender.ToString()  + ", message: " +
+                    Encoding.ASCII.GetString(data, 0, data.Length));
+                
+                string welcome = "Welcome to test server";
+                data = Encoding.ASCII.GetBytes(welcome);
+                listener.Send(data, data.Length, sender);
+
+            }
+            catch (Exception e)
+            {
+                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                //"Exception: " + e.Message);
+            }
         }
+
     }
 
 } 
