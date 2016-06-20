@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 using NetworkAPI;
 
@@ -104,12 +103,17 @@ namespace NetworkAPI
                 int maxCCount = cm.m_citizenCount;
 
                 Debug.Log ("Citizen maxCCount: " + maxCCount);
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Citizen maxCCount: " + maxCCount);
+
                 for (int i = 0; i < maxCCount; i++) {
                     String c = cm.GetCitizenName((uint)i);
                     if (c != null && !c.Equals("")) {
                         cCount += 1;
                     }
                 }
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Actual Citizens: " + cCount);
 
             } catch (Exception e) {
                 Debug.Log("Error in detecting citizen names");
@@ -136,15 +140,6 @@ namespace NetworkAPI
             Client = new UdpClient();
         }
 
-        public async Task<Received> Receive()
-        {
-            var result = await Client.ReceiveAsync();
-            return new Received()
-            {
-                Message = Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length),
-                Sender = result.RemoteEndPoint
-            };
-        }
     }
 
     //Server
@@ -174,8 +169,9 @@ namespace NetworkAPI
     {
         public static ManualResetEvent allDone = new ManualResetEvent(false);
 
-        string host;
-        int port;
+        static string host;
+        static int port;
+        static Socket listener;
 
         public void AsynchronousSocketListener()
         {
@@ -190,7 +186,7 @@ namespace NetworkAPI
             IPAddress ipAddress = ipHostInfo.AddressList[0];
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
 
-            Socket listener = new Socket(AddressFamily.InterNetwork,
+            listener = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram, ProtocolType.Udp);
 
             listener.Bind(localEndPoint);
@@ -198,6 +194,7 @@ namespace NetworkAPI
 
         public override void OnAfterSimulationTick()
         {
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "AfterSimTick");
         }
     }
 
