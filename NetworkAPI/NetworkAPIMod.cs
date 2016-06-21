@@ -11,6 +11,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using System.Reflection;
+
 using NetworkAPI;
 
 //many parts taken from:
@@ -129,10 +131,43 @@ namespace NetworkAPI
     {
 
         UdpClient listener;
+        string assemblyString;
 
         public override void OnCreated(IThreading threading)
         {
             base.OnCreated(threading);
+
+            try
+            {
+                CitizenManager cm = CitizenManager.instance;
+                NetManager nm = NetManager.instance;
+                VehicleManager vm = VehicleManager.instance;
+                Type t = cm.GetType();
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    t.Name);
+                assemblyString += t.Name + ":"+Environment.NewLine;
+                PropertyInfo[] pia = t.GetProperties();
+                foreach (PropertyInfo pi in pia)
+                {
+                    assemblyString += "\tproperty: " + pi.Name + "\n";
+                }
+                MethodInfo[] mia = t.GetMethods();
+                foreach (MethodInfo mi in mia)
+                {
+                    assemblyString += "\tmethod: " + mi.Name + "\n";
+                }
+                MemberInfo[] memia = t.GetMembers();
+                foreach (MemberInfo memi in memia)
+                {
+                    assemblyString += "\tmember: " + memi.Name + "\n";
+                }
+            }
+            catch (Exception e)
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    "Error inspecting class: " + e.Message);
+            }
+
             try
             {
                 IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 11000);
@@ -144,6 +179,12 @@ namespace NetworkAPI
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                     "Error creating listener: " + e.Message);
             }
+        }
+
+        public override void OnReleased()
+        {
+            base.OnReleased();
+            listener.Close();
         }
 
         public override void OnAfterSimulationTick()
@@ -161,15 +202,18 @@ namespace NetworkAPI
                     "Got connection from: " + sender.ToString()  + ", message: " +
                     Encoding.ASCII.GetString(data, 0, data.Length));
                 
-                string welcome = "Welcome to test server";
+                string welcome = "Welcome to test server:"+Environment.NewLine+ assemblyString;
                 data = Encoding.ASCII.GetBytes(welcome);
                 listener.Send(data, data.Length, sender);
 
             }
             catch (Exception e)
             {
-                //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                //"Exception: " + e.Message);
+                Debug.Log(e.Message);
+                /*
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                "Exception: " + e.Message);
+                */
             }
         }
 
