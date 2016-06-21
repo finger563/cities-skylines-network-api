@@ -145,6 +145,15 @@ namespace NetworkAPI
             foreach (MethodInfo mi in mia)
             {
                 assemblyString += "\tmethod: " + mi.Name + "\n";
+                ParameterInfo[] paramia = mi.GetParameters();
+                foreach (ParameterInfo parami in paramia)
+                {
+                    
+                    assemblyString += "\t\tparameter: " 
+                        + parami.Position + ", "
+                        + parami.ParameterType.Name + ": "
+                        + parami.Name + "\n";
+                }
             }
             MemberInfo[] memia = t.GetMembers();
             foreach (MemberInfo memi in memia)
