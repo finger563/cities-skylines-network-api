@@ -144,7 +144,7 @@ namespace NetworkAPI
             MethodInfo[] mia = t.GetMethods();
             foreach (MethodInfo mi in mia)
             {
-                assemblyString += "\tmethod: " + mi.Name + "\n";
+                assemblyString += "\tmethod: " + mi.Name + " returns: " + mi.ReturnType.Name + "\n";
                 ParameterInfo[] paramia = mi.GetParameters();
                 foreach (ParameterInfo parami in paramia)
                 {
