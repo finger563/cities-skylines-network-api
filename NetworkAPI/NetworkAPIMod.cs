@@ -133,34 +133,38 @@ namespace NetworkAPI
         UdpClient listener;
         string assemblyString;
 
+        public void InspectType(Type t)
+        {
+            assemblyString += t.Name + ":" + Environment.NewLine;
+            PropertyInfo[] pia = t.GetProperties();
+            foreach (PropertyInfo pi in pia)
+            {
+                assemblyString += "\tproperty: " + pi.Name + "\n";
+            }
+            MethodInfo[] mia = t.GetMethods();
+            foreach (MethodInfo mi in mia)
+            {
+                assemblyString += "\tmethod: " + mi.Name + "\n";
+            }
+            MemberInfo[] memia = t.GetMembers();
+            foreach (MemberInfo memi in memia)
+            {
+                assemblyString += "\tmember: " + memi.Name + "\n";
+            }
+        }
+
         public override void OnCreated(IThreading threading)
         {
             base.OnCreated(threading);
 
             try
             {
-                CitizenManager cm = CitizenManager.instance;
                 NetManager nm = NetManager.instance;
+                InspectType(nm.GetType());
                 VehicleManager vm = VehicleManager.instance;
-                Type t = cm.GetType();
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                    t.Name);
-                assemblyString += t.Name + ":"+Environment.NewLine;
-                PropertyInfo[] pia = t.GetProperties();
-                foreach (PropertyInfo pi in pia)
-                {
-                    assemblyString += "\tproperty: " + pi.Name + "\n";
-                }
-                MethodInfo[] mia = t.GetMethods();
-                foreach (MethodInfo mi in mia)
-                {
-                    assemblyString += "\tmethod: " + mi.Name + "\n";
-                }
-                MemberInfo[] memia = t.GetMembers();
-                foreach (MemberInfo memi in memia)
-                {
-                    assemblyString += "\tmember: " + memi.Name + "\n";
-                }
+                InspectType(vm.GetType());
+                CitizenManager cm = CitizenManager.instance;
+                InspectType(cm.GetType());
             }
             catch (Exception e)
             {
