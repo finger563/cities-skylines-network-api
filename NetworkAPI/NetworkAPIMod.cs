@@ -11,7 +11,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-using System.Reflection;
+using System.ServiceModel;
+using System.ServiceModel.Web;
 
 using NetworkAPI;
 
@@ -127,6 +128,31 @@ namespace NetworkAPI
 
     }
 
+    [ServiceContract(Name = "ManagerServices")]
+    public interface IManagerServices
+    {
+        [OperationContract]
+        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare)]
+        string GetManagerNameById(string id);
+    }
+
+    [ServiceBehavior(InstanceContextMode =InstanceContextMode.Single,
+        ConcurrencyMode =ConcurrencyMode.Single, IncludeExceptionDetailInFaults =true)]
+    public class ManagerServices : IManagerServices
+    {
+        public string GetManagerNameById(string id)
+        {
+            System.Random r = new System.Random();
+            string returnString = "";
+            int Idnum = Convert.ToInt32(id);
+            for (int i=0;i<Idnum;i++)
+            {
+                returnString += char.ConvertFromUtf32(r.Next(65, 85));
+            }
+            return returnString;
+        }
+    }
+
     public class ThreadingExension : ThreadingExtensionBase
     {
 
@@ -160,9 +186,17 @@ namespace NetworkAPI
             }
         }
 
+        ManagerServices DemoServices;
+        WebServiceHost _serviceHost;
+
         public override void OnCreated(IThreading threading)
         {
             base.OnCreated(threading);
+
+            DemoServices = new ManagerServices();
+            _serviceHost = new WebServiceHost(DemoServices,
+                new Uri("http://localhost:8000/ManagerService"));
+            _serviceHost.Open();
 
             try
             {
@@ -196,6 +230,7 @@ namespace NetworkAPI
         {
             base.OnReleased();
             listener.Close();
+            _serviceHost.Close();
         }
 
         public override void OnAfterSimulationTick()
