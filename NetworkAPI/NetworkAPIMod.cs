@@ -139,26 +139,24 @@ namespace NetworkAPI
             PropertyInfo[] pia = t.GetProperties();
             foreach (PropertyInfo pi in pia)
             {
-                assemblyString += "\tproperty: " + pi.Name + "\n";
+                assemblyString += "\t" + pi.PropertyType + " " +  pi.Name + " { get; set; }\n";
             }
             MethodInfo[] mia = t.GetMethods();
             foreach (MethodInfo mi in mia)
             {
-                assemblyString += "\tmethod: " + mi.Name + " returns: " + mi.ReturnType.Name + "\n";
+                assemblyString += "\t" + mi.ReturnType + " " + mi.Name + "(";
                 ParameterInfo[] paramia = mi.GetParameters();
                 foreach (ParameterInfo parami in paramia)
                 {
-                    
-                    assemblyString += "\t\tparameter: " 
-                        + parami.Position + ", "
-                        + parami.ParameterType.Name + ": "
-                        + parami.Name + "\n";
+                    assemblyString += parami.ParameterType + " "
+                        + parami.Name + ",";
                 }
+                assemblyString += ");\n";
             }
             MemberInfo[] memia = t.GetMembers();
             foreach (MemberInfo memi in memia)
             {
-                assemblyString += "\tmember: " + memi.Name + "\n";
+                assemblyString += "\t" + memi.MemberType + " " + memi.Name + ";\n";
             }
         }
 
