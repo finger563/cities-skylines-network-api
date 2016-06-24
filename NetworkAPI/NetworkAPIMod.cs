@@ -1,23 +1,16 @@
-﻿using ICities;
-using UnityEngine;
-using ColossalFramework.UI;
-using ColossalFramework.Plugins;
+﻿using System;
 
-using System;
-using System.Reflection;
-using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
-using NetworkAPI;
-
-//many parts taken from:
-//https://github.com/AlexanderDzhoganov/Skylines-DynamicResolution/
+using ICities;
+using UnityEngine;
+using ColossalFramework.UI;
+using ColossalFramework.Plugins;
 
 namespace NetworkAPI
 {
@@ -162,6 +155,7 @@ namespace NetworkAPI
         public void InspectType(Type t)
         {
             assemblyString += t.Name + ":" + Environment.NewLine;
+            /*
             PropertyInfo[] pia = t.GetProperties();
             foreach (PropertyInfo pi in pia)
             {
@@ -184,6 +178,7 @@ namespace NetworkAPI
             {
                 assemblyString += "\t" + memi.MemberType + " " + memi.Name + ";\n";
             }
+            */
         }
 
         ManagerServices DemoServices;
@@ -201,11 +196,11 @@ namespace NetworkAPI
             try
             {
                 NetManager nm = NetManager.instance;
-                InspectType(nm.GetType());
+                //InspectType(nm.GetType());
                 VehicleManager vm = VehicleManager.instance;
-                InspectType(vm.GetType());
+                //InspectType(vm.GetType());
                 CitizenManager cm = CitizenManager.instance;
-                InspectType(cm.GetType());
+                //InspectType(cm.GetType());
             }
             catch (Exception e)
             {

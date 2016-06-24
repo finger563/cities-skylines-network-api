@@ -1,15 +1,24 @@
-﻿using System.Reflection;
+﻿using System;
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
+
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+using System.ServiceModel;
+using System.ServiceModel.Web;
 
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle ("Newspaper")]
+[assembly: AssemblyTitle ("NetworkAPI")]
 [assembly: AssemblyDescription ("")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("")]
 [assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright ("dcx")]
+[assembly: AssemblyCopyright ("mit")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 
