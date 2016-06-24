@@ -7,9 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-using System.ServiceModel;
-using System.ServiceModel.Web;
-
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 

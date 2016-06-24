@@ -6,17 +6,16 @@ using System.Text;
 
 using System.Reflection;
 
-using System.ServiceModel;
-using System.ServiceModel.Web;
-
 using ICities;
 using UnityEngine;
 using ColossalFramework.UI;
 using ColossalFramework.Plugins;
 
+using System.ServiceModel;
+using System.ServiceModel.Web;
+
 namespace NetworkAPI
 {
-
     public class NetworkAPIMod : IUserMod
     {
         public string Name { get { return "Network API"; } }
@@ -69,30 +68,6 @@ namespace NetworkAPI
 
             try
             {
-                //get the names of any districts in the city
-                DistrictManager dm = DistrictManager.instance;
-
-                // example for iterating through the structures
-                int dCount = 0;
-                uint maxDCount = dm.m_districts.m_size;
-
-                Debug.Log ("District maxDCount: " + maxDCount);
-                for (int i = 0; i < maxDCount; i++) {
-                    String d = dm.GetDistrictName(i);
-                    if (d != null && !d.Equals("")) {
-                        dCount += 1;
-                    }
-                }
-
-            } catch (Exception e) {
-                Debug.Log("Error in detecting district names");
-                Debug.Log(e.Message);
-                Debug.Log(e.StackTrace);
-            }
-
-
-            try
-            {
                 //get the names of any citizens in the city
                 CitizenManager cm = CitizenManager.instance;
 
@@ -123,7 +98,7 @@ namespace NetworkAPI
 
     }
 
-    [ServiceContract(Name = "ManagerServices")]
+    [ServiceContract(Name ="ManagerServices")]
     public interface IManagerServices
     {
         [OperationContract]
@@ -131,19 +106,17 @@ namespace NetworkAPI
         string GetManagerNameById(string id);
     }
 
-    [ServiceBehavior(InstanceContextMode =InstanceContextMode.Single,
-        ConcurrencyMode =ConcurrencyMode.Single, IncludeExceptionDetailInFaults =true)]
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
+        ConcurrencyMode = ConcurrencyMode.Single, IncludeExceptionDetailInFaults = true)]
     public class ManagerServices : IManagerServices
     {
         public string GetManagerNameById(string id)
         {
             System.Random r = new System.Random();
             string returnString = "";
-            int Idnum = Convert.ToInt32(id);
-            for (int i=0;i<Idnum;i++)
-            {
+            int idNum = Convert.ToInt32(id);
+            for (int i = 0; i < idNum; i++)
                 returnString += char.ConvertFromUtf32(r.Next(65, 85));
-            }
             return returnString;
         }
     }
@@ -181,26 +154,23 @@ namespace NetworkAPI
             }
         }
 
-        ManagerServices DemoServices;
-        WebServiceHost _serviceHost;
-
         public override void OnCreated(IThreading threading)
         {
             base.OnCreated(threading);
 
-            DemoServices = new ManagerServices();
-            _serviceHost = new WebServiceHost(DemoServices,
-                new Uri("http://localhost:8000/ManagerService"));
-            _serviceHost.Open();
+            ManagerServices DemoServices = new ManagerServices();
+            //WebServiceHost _serviceHost = new WebServiceHost(DemoServices,
+            //new Uri("http://localhost:8000/ManagerService"));
+            //_serviceHost.Open();
 
             try
             {
                 NetManager nm = NetManager.instance;
-                //InspectType(nm.GetType());
+                InspectType(nm.GetType());
                 VehicleManager vm = VehicleManager.instance;
-                //InspectType(vm.GetType());
+                InspectType(vm.GetType());
                 CitizenManager cm = CitizenManager.instance;
-                //InspectType(cm.GetType());
+                InspectType(cm.GetType());
             }
             catch (Exception e)
             {
@@ -225,7 +195,7 @@ namespace NetworkAPI
         {
             base.OnReleased();
             listener.Close();
-            _serviceHost.Close();
+            //_serviceHost.Close();
         }
 
         public override void OnAfterSimulationTick()
