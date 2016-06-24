@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+using System.Reflection;
+
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
@@ -155,7 +157,6 @@ namespace NetworkAPI
         public void InspectType(Type t)
         {
             assemblyString += t.Name + ":" + Environment.NewLine;
-            /*
             PropertyInfo[] pia = t.GetProperties();
             foreach (PropertyInfo pi in pia)
             {
@@ -178,7 +179,6 @@ namespace NetworkAPI
             {
                 assemblyString += "\t" + memi.MemberType + " " + memi.Name + ";\n";
             }
-            */
         }
 
         ManagerServices DemoServices;
