@@ -63,12 +63,6 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Web.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Global.asax" />
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
