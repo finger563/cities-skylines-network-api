@@ -158,9 +158,9 @@ namespace NetworkAPI
         {
             base.OnCreated(threading);
 
-            ManagerServices DemoServices = new ManagerServices();
-            //WebServiceHost _serviceHost = new WebServiceHost(DemoServices,
-            //new Uri("http://localhost:8000/ManagerService"));
+            //ManagerServices DemoServices = new ManagerServices();
+            WebServiceHost _serviceHost = new WebServiceHost(typeof(ManagerServices),
+                new Uri("http://localhost:8000/ManagerService"));
             //_serviceHost.Open();
 
             try

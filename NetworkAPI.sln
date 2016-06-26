@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkAPI", "NetworkAPI\NetworkAPI.csproj", "{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagerService", "ManagerService\ManagerService.csproj", "{0D238F5E-49BC-4717-B1E3-03A02077571E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testApp", "testApp\testApp.csproj", "{EFB4B332-A2FF-4980-A82E-B21FAC187CA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEEFBF9E-04AA-4348-A852-C8E68B7669E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D238F5E-49BC-4717-B1E3-03A02077571E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D238F5E-49BC-4717-B1E3-03A02077571E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D238F5E-49BC-4717-B1E3-03A02077571E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D238F5E-49BC-4717-B1E3-03A02077571E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFB4B332-A2FF-4980-A82E-B21FAC187CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFB4B332-A2FF-4980-A82E-B21FAC187CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFB4B332-A2FF-4980-A82E-B21FAC187CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFB4B332-A2FF-4980-A82E-B21FAC187CA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
