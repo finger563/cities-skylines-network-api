@@ -212,10 +212,17 @@ namespace NetworkAPI
             {
                 Assembly assembly = Assembly.Load("Assembly-CSharp");
                 Type t = assembly.GetType(managername);
+
+                // get the instance of the manager here:
+                PropertyInfo instancePropInfo = (PropertyInfo)t.GetMember("instance")[0];
+                MethodInfo instanceMethodInfo = instancePropInfo.GetAccessors()[0];
+                object manager = instanceMethodInfo.Invoke(null, null);
+
                 if (type == "properties")
                 {
                     PropertyInfo p = t.GetProperty(propertyname);
-                    returnString = p.ToString();
+                    MethodInfo mi = p.GetGetMethod();
+                    returnString += mi.Invoke(manager, null);
                 }
                 else if (type == "methods")
                 {
@@ -224,18 +231,39 @@ namespace NetworkAPI
                 }
                 else if (type == "members")
                 {
-                    MemberInfo[] p = t.GetMember(propertyname);
-                    returnString = p.ToString();
+                    MemberInfo[] pa = t.GetMember(propertyname);
+                    foreach (var p in pa)
+                    {
+                        object[] attrs = p.GetCustomAttributes(false);
+                        foreach (object o in attrs)
+                        {
+                            returnString += o.ToString() + '\n';
+                        }
+                        if (p.MemberType == MemberTypes.Method)
+                        {
+                            foreach (ParameterInfo pi in ((MethodInfo) p).GetParameters())
+                            {
+                                returnString += string.Format("Parameter: Type={0}, Name={1};\n", pi.ParameterType, pi.Name);
+                            }
+                        }
+                        if (p.MemberType == MemberTypes.Property)
+                        {
+                            foreach (MethodInfo am in ((PropertyInfo) p).GetAccessors())
+                            {
+                                returnString += am.ToString();
+                            }
+                        }
+                    }
                 }
                 else if (type == "fields")
                 {
                     FieldInfo p = t.GetField(propertyname);
-                    returnString = p.ToString();
+                    returnString += "Field value: " + p.GetValue(manager) +"\n";
                 }
             }
             catch (Exception e)
             {
-                returnString = e.Message;
+                returnString += "\n\nERROR: " + e.Message;
             }
             return returnString;
         }
