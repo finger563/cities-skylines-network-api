@@ -101,50 +101,130 @@ namespace NetworkAPI
     [ServiceContract]
     public interface IManagerService
     {
-        [WebGet(UriTemplate = "managers/{id}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [WebGet(UriTemplate = "managers", BodyStyle = WebMessageBodyStyle.Bare)]
         [OperationContract]
-        string GetManagerNameById(string id);
+        string GetManagers();
+
+        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [OperationContract]
+        string GetManagerNameById(string managername);
+
+        [WebGet(UriTemplate = "managers/{managername}/{type}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [OperationContract]
+        string GetManagerProperties(string managername, string type);
+
+        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [OperationContract]
+        string GetManagerProperty(string managername, string type, string propertyname);
     }
 
     public class ManagerService : IManagerService
     {
-        public string GetManagerNameById(string id)
+        public string GetManagers()
         {
-            System.Random r = new System.Random();
             string returnString = "";
-            int idNum = Convert.ToInt32(id);
-            for (int i = 0; i < idNum; i++)
-                returnString += char.ConvertFromUtf32(r.Next(65, 85));
+            returnString += "CitizenManager" + "\n"
+                + "NetManager" + "\n"
+                + "VehicleManager" + "\n";
             return returnString;
         }
-    }
 
-    public class Server
-    {
-        WebServiceHost host;
-
-        public Server()
+        public string GetManagerNameById(string managername)
         {
-            Start();
-        }
-
-        public void Start()
-        {
+            string returnString = "";
             try
             {
-                host = new WebServiceHost(typeof(ManagerService),
-                    new Uri("http://localhost:8080/managerservice"));
-                host.Open();
+                Assembly assembly = Assembly.Load("Assembly-CSharp");
+                Type t = assembly.GetType(managername);
+                returnString = t.ToString();
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                returnString = e.Message;
             }
+            return returnString;
         }
 
-        ~Server()
+        public string GetManagerProperties(string managername, string type)
         {
-            host.Close();
+            string returnString = "";
+            try
+            {
+                Assembly assembly = Assembly.Load("Assembly-CSharp");
+                Type t = assembly.GetType(managername);
+                if (type == "properties")
+                {
+                    PropertyInfo[] pia = t.GetProperties();
+                    foreach (var p in pia)
+                    {
+                        returnString += p.Name + '\n';
+                    }
+                }
+                else if (type == "methods")
+                {
+                    MethodInfo[] pia = t.GetMethods();
+                    foreach (var p in pia)
+                    {
+                        returnString += p.Name + '\n';
+                    }
+                }
+                else if (type == "members")
+                {
+                    MemberInfo[] pia = t.GetMembers();
+                    foreach (var p in pia)
+                    {
+                        returnString += p.Name + '\n';
+                    }
+                }
+                else if (type == "fields")
+                {
+                    FieldInfo[] pia = t.GetFields();
+                    foreach (var p in pia)
+                    {
+                        returnString += p.Name + '\n';
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                returnString = e.Message;
+            }
+            return returnString;
+        }
+
+        public string GetManagerProperty(string managername, string type, string propertyname)
+        {
+            string returnString = "";
+            try
+            {
+                Assembly assembly = Assembly.Load("Assembly-CSharp");
+                Type t = assembly.GetType(managername);
+                if (type == "properties")
+                {
+                    PropertyInfo p = t.GetProperty(propertyname);
+                    returnString = p.ToString();
+                }
+                else if (type == "methods")
+                {
+                    MethodInfo m = t.GetMethod(propertyname);
+                    returnString = m.ToString();
+                }
+                else if (type == "members")
+                {
+                    MemberInfo[] p = t.GetMember(propertyname);
+                    returnString = p.ToString();
+                }
+                else if (type == "fields")
+                {
+                    FieldInfo p = t.GetField(propertyname);
+                    returnString = p.ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                returnString = e.Message;
+            }
+            return returnString;
         }
     }
 
@@ -153,6 +233,7 @@ namespace NetworkAPI
 
         UdpClient listener;
         string assemblyString;
+        WebServiceHost server;
 
         public void InspectType(Type t)
         {
@@ -185,7 +266,17 @@ namespace NetworkAPI
         {
             base.OnCreated(threading);
 
-            Server server = new Server();
+            try
+            {
+                server = new WebServiceHost(typeof(ManagerService),
+                    new Uri("http://localhost:8080/managerservice"));
+                server.Open();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+            }
+
 
             try
             {
@@ -219,7 +310,7 @@ namespace NetworkAPI
         {
             base.OnReleased();
             listener.Close();
-            //_serviceHost.Close();
+            server.Close();
         }
 
         public override void OnAfterSimulationTick()
