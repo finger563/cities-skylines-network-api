@@ -250,7 +250,7 @@ namespace NetworkAPI
                         {
                             foreach (MethodInfo am in ((PropertyInfo) p).GetAccessors())
                             {
-                                returnString += am.ToString();
+                                returnString += am.ToString() + "\n";
                             }
                         }
                     }
