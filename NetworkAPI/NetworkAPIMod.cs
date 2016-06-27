@@ -98,17 +98,15 @@ namespace NetworkAPI
 
     }
 
-    [ServiceContract(Name ="ManagerServices")]
-    public interface IManagerServices
+    [ServiceContract]
+    public interface IManagerService
     {
+        [WebGet(UriTemplate = "managers/{id}", BodyStyle = WebMessageBodyStyle.Bare)]
         [OperationContract]
-        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare)]
         string GetManagerNameById(string id);
     }
 
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
-        ConcurrencyMode = ConcurrencyMode.Single, IncludeExceptionDetailInFaults = true)]
-    public class ManagerServices : IManagerServices
+    public class ManagerService : IManagerService
     {
         public string GetManagerNameById(string id)
         {
@@ -118,6 +116,35 @@ namespace NetworkAPI
             for (int i = 0; i < idNum; i++)
                 returnString += char.ConvertFromUtf32(r.Next(65, 85));
             return returnString;
+        }
+    }
+
+    public class Server
+    {
+        WebServiceHost host;
+
+        public Server()
+        {
+            Start();
+        }
+
+        public void Start()
+        {
+            try
+            {
+                host = new WebServiceHost(typeof(ManagerService),
+                    new Uri("http://localhost:8080/managerservice"));
+                host.Open();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+            }
+        }
+
+        ~Server()
+        {
+            host.Close();
         }
     }
 
@@ -158,10 +185,7 @@ namespace NetworkAPI
         {
             base.OnCreated(threading);
 
-            //ManagerServices DemoServices = new ManagerServices();
-            WebServiceHost _serviceHost = new WebServiceHost(typeof(ManagerServices),
-                new Uri("http://localhost:8000/ManagerService"));
-            //_serviceHost.Open();
+            Server server = new Server();
 
             try
             {
