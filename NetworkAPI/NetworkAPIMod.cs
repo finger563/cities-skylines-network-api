@@ -123,9 +123,22 @@ namespace NetworkAPI
         public string GetManagers()
         {
             string returnString = "";
-            returnString += "CitizenManager" + "\n"
-                + "NetManager" + "\n"
-                + "VehicleManager" + "\n";
+            try
+            {
+                Assembly assembly = Assembly.Load("Assembly-CSharp");
+                Type[] ta = assembly.GetTypes();
+                foreach (var t in ta)
+                {
+                    if (t.Name.IndexOf("Manager") > -1)
+                    {
+                        returnString += t.Name + '\n';
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                returnString = e.Message;
+            }
             return returnString;
         }
 
