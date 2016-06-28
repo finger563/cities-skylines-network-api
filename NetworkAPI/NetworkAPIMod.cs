@@ -205,24 +205,41 @@ namespace NetworkAPI
             return returnString;
         }
 
+        public Type getAssemblyType(string assemblyName, string typeName)
+        {
+            return Assembly.Load(assemblyName).GetType(typeName);
+        }
+
+        public object getInstance(string assemblyName, string typeName)
+        {
+            // get the instance of the manager here:
+            Type t = getAssemblyType( assemblyName, typeName);
+            PropertyInfo instancePropInfo = (PropertyInfo)t.GetMember("instance")[0];
+            MethodInfo instanceMethodInfo = instancePropInfo.GetAccessors()[0];
+            return instanceMethodInfo.Invoke(null, null);
+        }
+
+        public object getPropertyValue(string managername, string name)
+        {
+            object retObj;
+            object manager = getInstance("Assembly-CSharp", managername);
+            Type t = getAssemblyType("Assembly-CSharp", managername);
+            MethodInfo mi = t.GetProperty(name).GetGetMethod();
+            retObj = mi.Invoke(manager, null);
+            return retObj;
+        }
+
         public string GetManagerProperty(string managername, string type, string propertyname)
         {
             string returnString = "";
             try
             {
-                Assembly assembly = Assembly.Load("Assembly-CSharp");
-                Type t = assembly.GetType(managername);
-
-                // get the instance of the manager here:
-                PropertyInfo instancePropInfo = (PropertyInfo)t.GetMember("instance")[0];
-                MethodInfo instanceMethodInfo = instancePropInfo.GetAccessors()[0];
-                object manager = instanceMethodInfo.Invoke(null, null);
+                Type t = getAssemblyType("Assembly-CSharp", managername);
+                object manager = getInstance("Assembly-CSharp", managername);
 
                 if (type == "properties")
                 {
-                    PropertyInfo p = t.GetProperty(propertyname);
-                    MethodInfo mi = p.GetGetMethod();
-                    returnString += mi.Invoke(manager, null);
+                    returnString += getPropertyValue(managername, propertyname);
                 }
                 else if (type == "methods")
                 {
@@ -248,10 +265,7 @@ namespace NetworkAPI
                         }
                         if (p.MemberType == MemberTypes.Property)
                         {
-                            foreach (MethodInfo am in ((PropertyInfo) p).GetAccessors())
-                            {
-                                returnString += am.ToString() + "\n";
-                            }
+                            returnString += getPropertyValue(managername, propertyname);
                         }
                     }
                 }
