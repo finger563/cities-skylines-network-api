@@ -106,6 +106,10 @@ namespace NetworkAPI
     [ServiceContract]
     public interface IManagerService
     {
+        [WebGet(UriTemplate = "assemblies/{assemblyName}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [OperationContract]
+        List<string> GetAssemblyTypes(string assemblyName);
+
         [WebGet(UriTemplate = "managers", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetManagers();
@@ -130,6 +134,14 @@ namespace NetworkAPI
         public ManagerService()
         {
             serializer = new JavaScriptSerializer();
+        }
+
+        public List<string> GetAssemblyTypes(string assemblyName)
+        {
+            List<string> types = new List<string>();
+            Assembly assembly = Assembly.Load(assemblyName);
+            types = assembly.GetTypes().Select(x => x.Name).ToList<string>();
+            return types;
         }
 
         public List<string> GetManagers()
