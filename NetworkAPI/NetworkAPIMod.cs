@@ -112,7 +112,7 @@ namespace NetworkAPI
 
         [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string GetManagerNameById(string managername);
+        List<string> GetManagerTypes(string managername);
 
         [WebGet(UriTemplate = "managers/{managername}/{type}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
@@ -149,20 +149,16 @@ namespace NetworkAPI
             return managers;
         }
 
-        public string GetManagerNameById(string managername)
+        public List<string> GetManagerTypes(string managername)
         {
-            string returnString = "";
-            try
-            {
-                Assembly assembly = Assembly.Load("Assembly-CSharp");
-                Type t = assembly.GetType(managername);
-                returnString = t.ToString();
-            }
-            catch (Exception e)
-            {
-                returnString = e.Message;
-            }
-            return returnString;
+            List<string> types = new List<string>();
+            types.Add("members");
+            types.Add("methods");
+            types.Add("properties");
+            types.Add("fields");
+            types.Add("events");
+            types.Add("nestedTypes");
+            return types;
         }
 
         public List<string> GetManagerProperties(string managername, string type)
@@ -188,7 +184,14 @@ namespace NetworkAPI
                 {
                     properties = t.GetFields().Select(x => x.Name).ToList<string>();
                 }
-                
+                else if (type == "events")
+                {
+                    properties = t.GetEvents().Select(x => x.Name).ToList<string>();
+                }
+                else if (type == "nestedTypes")
+                {
+                    properties = t.GetNestedTypes().Select(x => x.Name).ToList<string>();
+                }
             }
             catch (Exception e)
             {
@@ -235,8 +238,11 @@ namespace NetworkAPI
                 }
                 else if (type == "methods")
                 {
-                    MethodInfo m = t.GetMethod(propertyname);
-                    returnString = m.ToString();
+                    MemberInfo[] m = t.GetMember(propertyname);
+                    foreach (ParameterInfo pi in ((MethodInfo) m[0]).GetParameters())
+                    {
+                        returnString += string.Format("{0} {1}, ", pi.ParameterType, pi.Name);
+                    }
                 }
                 else if (type == "members")
                 {
@@ -246,13 +252,13 @@ namespace NetworkAPI
                         object[] attrs = p.GetCustomAttributes(false);
                         foreach (object o in attrs)
                         {
-                            returnString += o.ToString() + '\n';
+                            returnString += o.ToString() + ' ';
                         }
                         if (p.MemberType == MemberTypes.Method)
                         {
                             foreach (ParameterInfo pi in ((MethodInfo) p).GetParameters())
                             {
-                                returnString += string.Format("Parameter: Type={0}, Name={1};\n", pi.ParameterType, pi.Name);
+                                returnString += string.Format("{0} {1}, ", pi.ParameterType, pi.Name);
                             }
                         }
                         if (p.MemberType == MemberTypes.Property)
@@ -264,12 +270,12 @@ namespace NetworkAPI
                 else if (type == "fields")
                 {
                     FieldInfo p = t.GetField(propertyname);
-                    returnString += "Field value: " + p.GetValue(manager) +"\n";
+                    returnString += p.GetValue(manager);
                 }
             }
             catch (Exception e)
             {
-                returnString += "\n\nERROR: " + e.Message;
+                returnString += "ERROR: " + e.Message;
             }
             return returnString;
         }
