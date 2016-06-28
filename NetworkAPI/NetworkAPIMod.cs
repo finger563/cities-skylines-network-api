@@ -3,8 +3,11 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+
+using System.Linq;
 
 using ICities;
 using UnityEngine;
@@ -13,6 +16,8 @@ using ColossalFramework.Plugins;
 
 using System.ServiceModel;
 using System.ServiceModel.Web;
+
+using System.Web.Script.Serialization;
 
 namespace NetworkAPI
 {
@@ -101,45 +106,47 @@ namespace NetworkAPI
     [ServiceContract]
     public interface IManagerService
     {
-        [WebGet(UriTemplate = "managers", BodyStyle = WebMessageBodyStyle.Bare)]
+        [WebGet(UriTemplate = "managers", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string GetManagers();
+        List<string> GetManagers();
 
-        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         string GetManagerNameById(string managername);
 
-        [WebGet(UriTemplate = "managers/{managername}/{type}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [WebGet(UriTemplate = "managers/{managername}/{type}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string GetManagerProperties(string managername, string type);
+        List<string> GetManagerProperties(string managername, string type);
 
-        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", BodyStyle = WebMessageBodyStyle.Bare)]
+        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         string GetManagerProperty(string managername, string type, string propertyname);
     }
 
     public class ManagerService : IManagerService
     {
-        public string GetManagers()
+        JavaScriptSerializer serializer;
+
+        public ManagerService()
         {
-            string returnString = "";
+            serializer = new JavaScriptSerializer();
+        }
+
+        public List<string> GetManagers()
+        {
+            List<string> managers = new List<string>();
             try
             {
                 Assembly assembly = Assembly.Load("Assembly-CSharp");
-                Type[] ta = assembly.GetTypes();
-                foreach (var t in ta)
-                {
-                    if (t.Name.IndexOf("Manager") > -1)
-                    {
-                        returnString += t.Name + '\n';
-                    }
-                }
+                managers = assembly.GetTypes()
+                    .Where(x => x.Name.IndexOf("Manager") > -1)
+                    .Select(x => x.Name).ToList<string>();
             }
             catch (Exception e)
             {
-                returnString = e.Message;
+                managers.Add(e.Message);
             }
-            return returnString;
+            return managers;
         }
 
         public string GetManagerNameById(string managername)
@@ -158,51 +165,36 @@ namespace NetworkAPI
             return returnString;
         }
 
-        public string GetManagerProperties(string managername, string type)
+        public List<string> GetManagerProperties(string managername, string type)
         {
-            string returnString = "";
+            List<string> properties = new List<string>();
             try
             {
                 Assembly assembly = Assembly.Load("Assembly-CSharp");
                 Type t = assembly.GetType(managername);
                 if (type == "properties")
                 {
-                    PropertyInfo[] pia = t.GetProperties();
-                    foreach (var p in pia)
-                    {
-                        returnString += p.Name + '\n';
-                    }
+                    properties = t.GetProperties().Select(x => x.Name).ToList<string>();
                 }
                 else if (type == "methods")
                 {
-                    MethodInfo[] pia = t.GetMethods();
-                    foreach (var p in pia)
-                    {
-                        returnString += p.Name + '\n';
-                    }
+                    properties = t.GetMethods().Select(x => x.Name).ToList<string>();
                 }
                 else if (type == "members")
                 {
-                    MemberInfo[] pia = t.GetMembers();
-                    foreach (var p in pia)
-                    {
-                        returnString += p.Name + '\n';
-                    }
+                    properties = t.GetMembers().Select(x => x.Name).ToList<string>();
                 }
                 else if (type == "fields")
                 {
-                    FieldInfo[] pia = t.GetFields();
-                    foreach (var p in pia)
-                    {
-                        returnString += p.Name + '\n';
-                    }
+                    properties = t.GetFields().Select(x => x.Name).ToList<string>();
                 }
+                
             }
             catch (Exception e)
             {
-                returnString = e.Message;
+                properties.Add(e.Message);
             }
-            return returnString;
+            return properties;
         }
 
         public Type getAssemblyType(string assemblyName, string typeName)
