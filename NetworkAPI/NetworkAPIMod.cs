@@ -15,9 +15,8 @@ using ColossalFramework.UI;
 using ColossalFramework.Plugins;
 
 using System.ServiceModel;
+using System.ServiceModel.Description;
 using System.ServiceModel.Web;
-
-using System.Web.Script.Serialization;
 
 namespace NetworkAPI
 {
@@ -30,20 +29,26 @@ namespace NetworkAPI
     public class ThreadingExension : ThreadingExtensionBase
     {
         WebServiceHost server;
+        ServiceEndpoint ep;
 
         public override void OnCreated(IThreading threading)
         {
-            base.OnCreated(threading);
             try
             {
-                server = new WebServiceHost(typeof(Network),
-                    new Uri("http://localhost:8080/managerservice"));
+                Uri baseAddress = new Uri("http://localhost:8080/");
+                server = new WebServiceHost(typeof(Network), baseAddress);
+                ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
+                sdb.HttpHelpPageEnabled = false;
+                ep = server.AddServiceEndpoint(typeof(INetwork), new WebHttpBinding(), "");
+                //ep.Behaviors.Add(new WebHttpBehavior());
+                //ep.Behaviors.Add(new WebScriptEnablingBehavior());
                 server.Open();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
             }
+            base.OnCreated(threading);
         }
 
         public override void OnReleased()

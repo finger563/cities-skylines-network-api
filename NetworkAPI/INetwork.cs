@@ -11,24 +11,41 @@ namespace NetworkAPI
     [ServiceContract]
     public interface INetwork
     {
-        [WebGet(UriTemplate = "assemblies/{assemblyName}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "assemblies/{assemblyName}", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetAssemblyTypes(string assemblyName);
 
-        [WebGet(UriTemplate = "managers", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "managers", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetManagers();
 
-        [WebGet(UriTemplate = "managers/{managername}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "managers/{managername}", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetManagerTypes(string managername);
 
-        [WebGet(UriTemplate = "managers/{managername}/{type}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "managers/{managername}/{type}", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetManagerProperties(string managername, string type);
 
-        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         string GetManagerProperty(string managername, string type, string propertyname);
+
+        [WebInvoke(UriTemplate = "call",
+            BodyStyle = WebMessageBodyStyle.Bare,
+            RequestFormat = WebMessageFormat.Json,
+            ResponseFormat = WebMessageFormat.Json)]
+        [OperationContract]
+        string CallManagerMethod(string data);
     }
 }

@@ -8,6 +8,10 @@ using System.Net.Sockets;
 using System.Collections;
 using System.Reflection;
 
+using System.IO;
+
+using System.Web.Script.Serialization;
+
 using ICities;
 using UnityEngine;
 using ColossalFramework.UI;
@@ -16,10 +20,10 @@ using ColossalFramework.Plugins;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
-using System.Web.Script.Serialization;
-
 namespace NetworkAPI
 {
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
+        ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class Network : INetwork
     {
         JavaScriptSerializer serializer;
@@ -177,12 +181,27 @@ namespace NetworkAPI
                     FieldInfo p = t.GetField(propertyname);
                     returnString += p.GetValue(manager);
                 }
+                else if (type == "events")
+                {
+
+                }
+                else if (type == "nestedTypes")
+                {
+                    //Type nt = t.GetNestedType(propertyname);
+                    Citizen testObj = new Citizen();
+                    returnString += serializer.Serialize(testObj);
+                }
             }
             catch (Exception e)
             {
                 returnString += "ERROR: " + e.Message;
             }
             return returnString;
+        }
+
+        public string CallManagerMethod(string data)
+        {
+            return "got body: " + data;
         }
     }
 }
