@@ -204,7 +204,6 @@ namespace NetworkAPI
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "GET call");
-            //string body = Encoding.UTF8.GetString(OperationContext.Current.RequestContext.RequestMessage.GetBody<byte[]>());
             if (parameters != null && parameters.Count > 0)
             {
                 foreach (var p in parameters)
@@ -219,13 +218,13 @@ namespace NetworkAPI
             return parameters;
         }
 
-        public string testMethod(System.IO.Stream data)
+        public string testMethod(string managername, string methodname, System.IO.Stream data)
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "POST call");
             System.IO.StreamReader reader = new System.IO.StreamReader(data);
             string body = reader.ReadToEnd();
-            //string body = Encoding.UTF8.GetString(OperationContext.Current.RequestContext.RequestMessage.GetBody<byte[]>());
+            Console.WriteLine("Received POST for " + managername + " to call " + methodname);
             return "testMethod:: " + body;
         }
     }

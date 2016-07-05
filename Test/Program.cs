@@ -18,36 +18,47 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Web;
 
+using System.ServiceModel.Channels;
+
 using NetworkAPI;
 
 namespace Test
 {
     class Program
     {
+        public class MyMapper : WebContentTypeMapper
+        {
+            public override WebContentFormat GetMessageFormatForContentType(string contentType)
+            {
+                return WebContentFormat.Raw;
+            }
+        }
+
+        static Binding GetBinding()
+        {
+            CustomBinding result = new CustomBinding(new WebHttpBinding());
+            WebMessageEncodingBindingElement webMEBE = result.Elements.Find<WebMessageEncodingBindingElement>();
+            webMEBE.ContentTypeMapper = new MyMapper();
+            return result;
+        }
+
         static void Main(string[] args)
         {
 
             WebServiceHost server;
-            ServiceEndpoint ep;
-            WebHttpBehavior behavior;
-            WebHttpBinding binding;
 
             try
             {
                 Uri baseAddress = new Uri("http://localhost:4040/");
                 server = new WebServiceHost(typeof(NetworkAPI.Network), baseAddress);
+
                 ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
                 sdb.HttpHelpPageEnabled = true;
                 sdb.HttpHelpPageUrl = new Uri("http://localhost:4040/help");
                 sdb.IncludeExceptionDetailInFaults = true;
-                binding = new WebHttpBinding();
-                //binding.ContentTypeMapper = new NetworkAPI.JsonContentTypeMapper();
-                ep = server.AddServiceEndpoint(typeof(INetwork), binding, "");
-                behavior = new WebHttpBehavior();
-                behavior.DefaultBodyStyle = WebMessageBodyStyle.Bare;
-                behavior.DefaultOutgoingResponseFormat = WebMessageFormat.Json;
-                ep.Behaviors.Add(behavior);
-                //ep.Behaviors.Add(new WebScriptEnablingBehavior());
+
+                server.AddServiceEndpoint(typeof(INetwork), GetBinding(), "").Behaviors.Add(new WebHttpBehavior());
+
                 server.Open();
                 Console.WriteLine("Server up.");
                 Console.Read();

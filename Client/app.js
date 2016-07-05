@@ -30,7 +30,7 @@ var logFunc = function (error, response, body) {
 
 var citiesOptions = {
     method: 'POST',
-    uri: citiesHost + '/call',
+    uri: citiesHost + '/testMethod',
     headers: {
 	'content-type': 'application/json; charset=utf-8'
     },
@@ -38,7 +38,7 @@ var citiesOptions = {
 };
 
 var testOptions = _.clone(citiesOptions);
-testOptions.uri = testHost + '/call';
+testOptions.uri = testHost + '/managers/CitizenManager/call/CreateCitizen';
 
 request(
     citiesOptions,

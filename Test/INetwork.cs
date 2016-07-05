@@ -36,13 +36,10 @@ namespace NetworkAPI
         [OperationContract]
         List<MethodParameter> CallManagerMethod(List<MethodParameter> parameters);
 
-        [WebInvoke(
-            Method = "POST",
-            RequestFormat = WebMessageFormat.Xml,
-            BodyStyle = WebMessageBodyStyle.Bare,
-            ResponseFormat = WebMessageFormat.Xml)]
+        [WebInvoke(UriTemplate = "/managers/{managername}/call/{methodname}",
+            ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string testMethod(System.IO.Stream data);
+        string testMethod(string managername, string methodname, System.IO.Stream data);
 
         [WebGet(UriTemplate = "assemblies/{assemblyName}", 
             BodyStyle = WebMessageBodyStyle.Bare, 
