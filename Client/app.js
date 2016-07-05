@@ -28,25 +28,50 @@ var logFunc = function (error, response, body) {
     console.log(body);
 };
 
-var citiesOptions = {
-    method: 'POST',
-    uri: citiesHost + '/testMethod',
-    headers: {
-	'content-type': 'application/json; charset=utf-8'
+var tests = [
+    {
+	"uri": citiesHost + '/managers',
+	"method": "GET"
     },
-    body: JSON.stringify(obj)
-};
+    {
+	"uri": citiesHost + '/managers/CitizenManager/call/createCitizen',
+	"method": "POST",
+	"content-type": "application/json",
+	"data": JSON.stringify(obj)
+    },
+    {
+	"uri": testHost + '/managers',
+	"method": "GET"
+    },
+    {
+	"uri": testHost + '/call',
+	"method": "POST",
+	"content-type": "application/json",
+	"data": JSON.stringify(obj)
+    },
+    {
+	"uri": testHost + '/managers/CitizenManager/call/CreateCitizen',
+	"method": "POST",
+	"content-type": "text/plain",
+	"data": JSON.stringify(obj)
+    },
+];
 
-var testOptions = _.clone(citiesOptions);
-testOptions.uri = testHost + '/managers/CitizenManager/call/CreateCitizen';
+for (var i in tests) {
+    var t = tests[i];
+    var options = {
+	method: t.method,
+	uri: t.uri,
+	headers: {
+	    'content-type': t["content-type"]+'; charset=utf-8'
+	},
+    };
+    if (t.data)
+	options.body = t.data;
 
-request(
-    citiesOptions,
-    logFunc
-);
-
-request(
-    testOptions,
-    logFunc
-);
+    request(
+	options,
+	logFunc
+    );
+}
 

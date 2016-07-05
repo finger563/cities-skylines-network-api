@@ -30,7 +30,12 @@ namespace Test
         {
             public override WebContentFormat GetMessageFormatForContentType(string contentType)
             {
-                return WebContentFormat.Raw;
+                if (contentType.IndexOf("application/json") > -1)
+                    return WebContentFormat.Json;
+                else if (contentType.IndexOf("application/xml") > -1)
+                    return WebContentFormat.Xml;
+                else
+                    return WebContentFormat.Raw;
             }
         }
 
