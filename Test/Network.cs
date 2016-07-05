@@ -16,9 +16,25 @@ using ColossalFramework.Plugins;
 
 using System.ServiceModel;
 using System.ServiceModel.Web;
+using System.ServiceModel.Channels;
 
 namespace NetworkAPI
 {
+    public class JsonContentTypeMapper : System.ServiceModel.Channels.WebContentTypeMapper
+    {
+        public override WebContentFormat GetMessageFormatForContentType(string contentType)
+        {
+            if (contentType == "text/javascript" || contentType == "application/json")
+            {
+                return WebContentFormat.Json;
+            }
+            else
+            {
+                return WebContentFormat.Default;
+            }
+        }
+    }
+
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
         ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class Network : INetwork

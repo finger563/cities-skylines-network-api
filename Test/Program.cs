@@ -18,32 +18,30 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Web;
 
-namespace NetworkAPI
+using NetworkAPI;
+
+namespace Test
 {
-    public class NetworkAPIMod : IUserMod
+    class Program
     {
-        public string Name { get { return "Network API"; } }
-        public string Description { get { return "This mod exposes the Cities: Skylines Data and Interfaces Through Sockets."; } }
-    }
-
-    public class ThreadingExension : ThreadingExtensionBase
-    {
-        WebServiceHost server;
-        ServiceEndpoint ep;
-        WebHttpBehavior behavior;
-        WebHttpBinding binding;
-
-        public override void OnCreated(IThreading threading)
+        static void Main(string[] args)
         {
+
+            WebServiceHost server;
+            ServiceEndpoint ep;
+            WebHttpBehavior behavior;
+            WebHttpBinding binding;
+
             try
             {
                 Uri baseAddress = new Uri("http://localhost:8080/");
-                server = new WebServiceHost(typeof(Network), baseAddress);
+                server = new WebServiceHost(typeof(NetworkAPI.Network), baseAddress);
                 ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
                 sdb.HttpHelpPageEnabled = true;
                 sdb.HttpHelpPageUrl = new Uri("http://localhost:8080/help");
                 sdb.IncludeExceptionDetailInFaults = true;
                 binding = new WebHttpBinding();
+                //binding.ContentTypeMapper = new NetworkAPI.JsonContentTypeMapper();
                 ep = server.AddServiceEndpoint(typeof(INetwork), binding, "");
                 behavior = new WebHttpBehavior();
                 behavior.DefaultBodyStyle = WebMessageBodyStyle.Bare;
@@ -51,20 +49,14 @@ namespace NetworkAPI
                 ep.Behaviors.Add(behavior);
                 //ep.Behaviors.Add(new WebScriptEnablingBehavior());
                 server.Open();
+                Console.WriteLine("Server up.");
+                Console.Read();
+                server.Close();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
             }
-            base.OnCreated(threading);
         }
-
-        public override void OnReleased()
-        {
-            base.OnReleased();
-            server.Close();
-        }
-
     }
-
-} 
+}
