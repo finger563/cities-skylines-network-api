@@ -34,11 +34,11 @@ namespace Test
 
             try
             {
-                Uri baseAddress = new Uri("http://localhost:8080/");
+                Uri baseAddress = new Uri("http://localhost:4040/");
                 server = new WebServiceHost(typeof(NetworkAPI.Network), baseAddress);
                 ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
                 sdb.HttpHelpPageEnabled = true;
-                sdb.HttpHelpPageUrl = new Uri("http://localhost:8080/help");
+                sdb.HttpHelpPageUrl = new Uri("http://localhost:4040/help");
                 sdb.IncludeExceptionDetailInFaults = true;
                 binding = new WebHttpBinding();
                 //binding.ContentTypeMapper = new NetworkAPI.JsonContentTypeMapper();
@@ -56,6 +56,7 @@ namespace Test
             catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
+                Console.Read();
             }
         }
     }

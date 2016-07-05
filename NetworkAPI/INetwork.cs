@@ -3,21 +3,46 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using System.Runtime.Serialization;
+
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
 namespace NetworkAPI
 {
+    [DataContract]
+    public class MethodParameter
+    {
+        string type = string.Empty;
+        string name = string.Empty;
+        string value = string.Empty;
+
+        [DataMember]
+        public string Type { get; set; }
+        [DataMember]
+        public string Name { get; set; }
+        [DataMember]
+        public string Value { get; set; }
+    }
+
     [ServiceContract]
     public interface INetwork
     {
-        [WebInvoke(
+        [WebInvoke(UriTemplate = "call",
             Method = "POST",
             RequestFormat = WebMessageFormat.Json,
             BodyStyle = WebMessageBodyStyle.Bare,
             ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string testMethod(string data);
+        List<MethodParameter> CallManagerMethod(List<MethodParameter> parameters);
+
+        [WebInvoke(
+            Method = "POST",
+            RequestFormat = WebMessageFormat.Xml,
+            BodyStyle = WebMessageBodyStyle.Bare,
+            ResponseFormat = WebMessageFormat.Xml)]
+        [OperationContract]
+        string testMethod(System.IO.Stream data);
 
         [WebGet(UriTemplate = "assemblies/{assemblyName}", 
             BodyStyle = WebMessageBodyStyle.Bare, 
@@ -36,13 +61,6 @@ namespace NetworkAPI
             ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
         List<string> GetManagerTypes(string managername);
-
-        [WebInvoke(UriTemplate = "managers/{managername}/call/{methodname}",
-            Method = "POST",
-            BodyStyle = WebMessageBodyStyle.Bare,
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        string CallManagerMethod(string managername, string methodname, System.IO.Stream data);
 
         [WebGet(UriTemplate = "managers/{managername}/{type}", 
             BodyStyle = WebMessageBodyStyle.Bare, 

@@ -20,21 +20,6 @@ using System.ServiceModel.Channels;
 
 namespace NetworkAPI
 {
-    public class JsonContentTypeMapper : System.ServiceModel.Channels.WebContentTypeMapper
-    {
-        public override WebContentFormat GetMessageFormatForContentType(string contentType)
-        {
-            if (contentType == "text/javascript" || contentType == "application/json")
-            {
-                return WebContentFormat.Json;
-            }
-            else
-            {
-                return WebContentFormat.Default;
-            }
-        }
-    }
-
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
         ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class Network : INetwork
@@ -215,20 +200,33 @@ namespace NetworkAPI
             return returnString;
         }
 
-        public string CallManagerMethod(string managername, string methodname, System.IO.Stream data)
+        public List<MethodParameter> CallManagerMethod(List<MethodParameter> parameters)
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "GET call");
             //string body = Encoding.UTF8.GetString(OperationContext.Current.RequestContext.RequestMessage.GetBody<byte[]>());
-            return "CallManagerMethod:: " + managername + ":" + methodname;
+            if (parameters != null && parameters.Count > 0)
+            {
+                foreach (var p in parameters)
+                {
+                    p.Value += " has been set by server!";
+                }
+            }
+            else
+            {
+                Console.WriteLine("Parameters is null!");
+            }
+            return parameters;
         }
 
-        public string testMethod(string data)
+        public string testMethod(System.IO.Stream data)
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "POST call");
-            string body = Encoding.UTF8.GetString(OperationContext.Current.RequestContext.RequestMessage.GetBody<byte[]>());
-            return "testMethod:: " + data;
+            System.IO.StreamReader reader = new System.IO.StreamReader(data);
+            string body = reader.ReadToEnd();
+            //string body = Encoding.UTF8.GetString(OperationContext.Current.RequestContext.RequestMessage.GetBody<byte[]>());
+            return "testMethod:: " + body;
         }
     }
 }

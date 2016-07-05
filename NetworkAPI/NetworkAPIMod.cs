@@ -38,18 +38,25 @@ namespace NetworkAPI
             try
             {
                 Uri baseAddress = new Uri("http://localhost:8080/");
-                server = new WebServiceHost(typeof(Network), baseAddress);
-                ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
-                sdb.HttpHelpPageEnabled = true;
-                sdb.HttpHelpPageUrl = new Uri("http://localhost:8080/help");
-                sdb.IncludeExceptionDetailInFaults = true;
+
                 binding = new WebHttpBinding();
-                ep = server.AddServiceEndpoint(typeof(INetwork), binding, "");
+
                 behavior = new WebHttpBehavior();
-                behavior.DefaultBodyStyle = WebMessageBodyStyle.Bare;
-                behavior.DefaultOutgoingResponseFormat = WebMessageFormat.Json;
+                //behavior.DefaultBodyStyle = WebMessageBodyStyle.Bare;
+                //behavior.DefaultOutgoingResponseFormat = WebMessageFormat.Json;
+
+                server = new WebServiceHost(typeof(Network), baseAddress);
+
+                //ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
+                //sdb.HttpHelpPageEnabled = false;
+                //sdb.HttpHelpPageUrl = new Uri("http://localhost:8080/help");
+                //sdb.HttpHelpPageBinding = binding;
+                //sdb.IncludeExceptionDetailInFaults = true;
+
+                ep = server.AddServiceEndpoint(typeof(INetwork), binding, "");
                 ep.Behaviors.Add(behavior);
                 //ep.Behaviors.Add(new WebScriptEnablingBehavior());
+
                 server.Open();
             }
             catch (Exception e)
