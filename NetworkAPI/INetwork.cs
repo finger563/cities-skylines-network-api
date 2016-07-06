@@ -33,6 +33,12 @@ namespace NetworkAPI
         [OperationContract(Name = "testMethod")]
         string CallManagerMethod(string managername, string methodname, string paramdata);
 
+        [WebGet(UriTemplate = "assemblies", 
+            BodyStyle = WebMessageBodyStyle.Bare, 
+            ResponseFormat = WebMessageFormat.Json)]
+        [OperationContract]
+        List<string> GetAssemblies();
+
         [WebGet(UriTemplate = "assemblies/{assemblyName}", 
             BodyStyle = WebMessageBodyStyle.Bare, 
             ResponseFormat = WebMessageFormat.Json)]

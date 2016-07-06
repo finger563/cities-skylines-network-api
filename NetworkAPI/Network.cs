@@ -28,6 +28,11 @@ namespace NetworkAPI
             serializer = new JavaScriptSerializer();
         }
 
+        public List<string> GetAssemblies()
+        {
+            return new List<string> { "Assembly-CSharp", "ICities", "ColossalManaged" };
+        }
+
         public List<string> GetAssemblyTypes(string assemblyName)
         {
             List<string> types = new List<string>();
@@ -57,14 +62,7 @@ namespace NetworkAPI
 
         public List<string> GetManagerTypes(string managername)
         {
-            List<string> types = new List<string>();
-            types.Add("members");
-            types.Add("methods");
-            types.Add("properties");
-            types.Add("fields");
-            types.Add("events");
-            types.Add("nestedTypes");
-            return types;
+            return new List<string> { "members", "methods", "properties", "fields", "events", "nestedTypes" };
         }
 
         public List<string> GetManagerProperties(string managername, string type)
