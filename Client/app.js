@@ -35,16 +35,8 @@ obj = {
 var tests = [
 
     {
-	"uri": citiesHost + '/managers',
-	"method": "GET"
-    },
-    {
 	"uri": citiesHost + '/managers/CitizenManager/call/CreateCitizen?params='+JSON.stringify(obj),
 	"method": "GET",
-    },
-    {
-	"uri": testHost + '/managers',
-	"method": "GET"
     },
     {
 	"uri": testHost + '/managers/CitizenManager/call/CreateCitizen?params='+JSON.stringify(obj),

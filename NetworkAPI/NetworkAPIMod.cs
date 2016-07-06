@@ -6,6 +6,8 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
+using System.Threading;
+
 using System.Linq;
 
 using ICities;
@@ -16,6 +18,7 @@ using ColossalFramework.Plugins;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Web;
+using System.Web.Script.Serialization;
 
 using System.ServiceModel.Channels;
 
@@ -29,49 +32,50 @@ namespace NetworkAPI
 
     public class ThreadingExension : ThreadingExtensionBase
     {
-        WebServiceHost server;
+        UdpClient listener;
+        Thread listenerThread;
+        NetworkAPI.Network networkAPI;
 
-        public class MyMapper : WebContentTypeMapper
+        public void ListenerThreadFunc()
         {
-            public override WebContentFormat GetMessageFormatForContentType(string contentType)
+            while (true)
             {
-                if (contentType.IndexOf("application/json") > -1)
-                    return WebContentFormat.Json;
-                else if (contentType.IndexOf("application/xml") > -1)
-                    return WebContentFormat.Xml;
-                else
-                    return WebContentFormat.Raw;
-            }
-        }
+                try
+                {
+                    byte[] data = new byte[1024];
+                    IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+                    data = listener.Receive(ref sender);
 
-        static Binding GetBinding()
-        {
-            WebHttpBinding b = new WebHttpBinding();
-            b.TransferMode = TransferMode.Streamed;
-            CustomBinding result = new CustomBinding(b);
-            WebMessageEncodingBindingElement webMEBE = result.Elements.Find<WebMessageEncodingBindingElement>();
-            webMEBE.ContentTypeMapper = new MyMapper();
-            return result;
+                    string command = Encoding.ASCII.GetString(data, 0, data.Length);
+
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                        "Got connection from: " + sender.ToString() + ", message: " +
+                        command);
+
+                    string welcome = "Welcome to test server" + Environment.NewLine;
+                    welcome += new JavaScriptSerializer().Serialize(networkAPI.ParseCommand(command));
+                    data = Encoding.ASCII.GetBytes(welcome);
+                    listener.Send(data, data.Length, sender);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e.Message);
+                }
+            }
         }
 
         public override void OnCreated(IThreading threading)
         {
             try
             {
-                Uri baseAddress = new Uri("http://localhost:8080/");
-                
-                server = new WebServiceHost(typeof(NetworkAPI.Network), baseAddress);
+                networkAPI = new NetworkAPI.Network();
 
-                ServiceDebugBehavior sdb = server.Description.Behaviors.Find<ServiceDebugBehavior>();
-                sdb.HttpHelpPageEnabled = true;
-                sdb.HttpHelpPageUrl = new Uri("http://localhost:8080/help");
-                sdb.IncludeExceptionDetailInFaults = true;
-
-                server.AddServiceEndpoint(typeof(NetworkAPI.INetwork), GetBinding(), "").Behaviors.Add(new WebHttpBehavior());
-
-                server.Open();
-
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Server open on " + baseAddress.ToString());
+                IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 11000);
+                listener = new UdpClient(ipep);
+                listener.Client.ReceiveTimeout = 50;
+                listenerThread = new Thread(new ThreadStart(this.ListenerThreadFunc));
+                listenerThread.Start();
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Server up");
             }
             catch (Exception e)
             {
@@ -85,7 +89,8 @@ namespace NetworkAPI
         public override void OnReleased()
         {
             base.OnReleased();
-            server.Close();
+            listenerThread.Abort();
+            listener.Close();
         }
 
     }

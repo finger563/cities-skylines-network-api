@@ -28,6 +28,47 @@ namespace NetworkAPI
             serializer = new JavaScriptSerializer();
         }
 
+        public object ParseCommand(string command)
+        {
+            string[] commands = command.Trim('/').Split('/');
+            if (commands.Length > 0)
+            {
+                if (commands[0] == "managers")
+                {
+                    if (commands.Length > 1 && commands[1] != null)
+                    {
+                        if (commands.Length > 2 && commands[2] != null)
+                        {
+                            if (commands.Length > 3 && commands[3] != null)
+                            {
+                                if (commands[2] == "call")
+                                {
+                                    return "Calling " + commands[3];
+                                }
+                                return GetManagerProperty(commands[1], commands[2], commands[3]);
+                            }
+                            if (commands[2] == "call")
+                            {
+                                return "Error: You must provide method name and arguments!";
+                            }
+                            return GetManagerProperties(commands[1], commands[2]);
+                        }
+                        return GetManagerTypes(commands[1]);
+                    }
+                    return GetManagers();
+                }
+                else if (commands[0] == "assemblies")
+                {
+                    if (commands.Length > 1 && commands[1] != null)
+                    {
+                        return GetAssemblyTypes(commands[1]);
+                    }
+                    return new List<string> { "Assembly-CSharp", "ICities", "ColossalManaged" };
+                }
+            }
+            return new List<string> { "managers", "assemblies"};
+        }
+
         public List<string> GetAssemblyTypes(string assemblyName)
         {
             List<string> types = new List<string>();
