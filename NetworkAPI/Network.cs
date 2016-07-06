@@ -203,14 +203,14 @@ namespace NetworkAPI
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
             Console.WriteLine(debugMessage);
 
-            string retString = "";
+            string retString = "CallManagerMethod:: ";
             
             if (paramdata != null && paramdata.Length > 0)
             {
                 IDictionary<string, object> dict = serializer.DeserializeObject(paramdata) as IDictionary<string, object>;
                 if (dict != null)
                 {
-                    retString = serializer.Serialize(dict);
+                    retString += serializer.Serialize(dict);
                     Console.WriteLine("Dict: " + retString);
                 }
             }
