@@ -17,7 +17,7 @@ var obj = [
     }
 ];
 
-obj =     {
+obj = {
     "Name": "name2",
     "Type": "boolean",
     "Value": "this is another value",
@@ -39,7 +39,7 @@ var tests = [
 	"method": "GET"
     },
     {
-	"uri": citiesHost + '/managers/CitizenManager/call/createCitizen?params='+JSON.stringify(obj),
+	"uri": citiesHost + '/managers/CitizenManager/call/CreateCitizen?params='+JSON.stringify(obj),
 	"method": "GET",
     },
     {

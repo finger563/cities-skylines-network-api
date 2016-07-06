@@ -199,9 +199,9 @@ namespace NetworkAPI
 
         public string CallManagerMethod(string managername, string methodname, string paramdata)
         {
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                "GET call");
-            Console.WriteLine("Received GET for CallManagerMethod: " + paramdata);
+            string debugMessage = "Received GET for CallManagerMethod: " + paramdata;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
+            Console.WriteLine(debugMessage);
 
             string retString = "";
             

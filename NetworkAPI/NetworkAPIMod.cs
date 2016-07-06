@@ -58,8 +58,6 @@ namespace NetworkAPI
         {
             try
             {
-
-
                 Uri baseAddress = new Uri("http://localhost:8080/");
                 
                 server = new WebServiceHost(typeof(NetworkAPI.Network), baseAddress);
@@ -72,6 +70,8 @@ namespace NetworkAPI
                 server.AddServiceEndpoint(typeof(NetworkAPI.INetwork), GetBinding(), "").Behaviors.Add(new WebHttpBehavior());
 
                 server.Open();
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Server open on " + baseAddress.ToString());
             }
             catch (Exception e)
             {

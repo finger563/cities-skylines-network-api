@@ -199,9 +199,9 @@ namespace NetworkAPI
 
         public string CallManagerMethod(string managername, string methodname, string paramdata)
         {
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                "GET call");
-            Console.WriteLine("Received GET for CallManagerMethod: " + paramdata);
+            string debugMessage = "Received GET for CallManagerMethod: " + paramdata;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
+            Console.WriteLine(debugMessage);
 
             string retString = "";
             
@@ -216,16 +216,6 @@ namespace NetworkAPI
             }
 
             return retString;
-        }
-
-        public string testMethod(string managername, string methodname, System.IO.Stream data)
-        {
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                "POST call");
-            System.IO.StreamReader reader = new System.IO.StreamReader(data);
-            string body = reader.ReadToEnd();
-            Console.WriteLine("Received POST for " + managername + " to call " + methodname);
-            return "testMethod:: " + body;
         }
     }
 }
