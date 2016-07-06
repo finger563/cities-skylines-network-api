@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using System.Net;
-using System.Net.Sockets;
-using System.Collections;
 using System.Reflection;
 using System.Web.Script.Serialization;
 
@@ -200,22 +197,25 @@ namespace NetworkAPI
             return returnString;
         }
 
-        public List<MethodParameter> CallManagerMethod(List<MethodParameter> parameters)
+        public string CallManagerMethod(string managername, string methodname, string paramdata)
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "GET call");
-            if (parameters != null && parameters.Count > 0)
+            Console.WriteLine("Received GET for CallManagerMethod: " + paramdata);
+
+            string retString = "";
+            
+            if (paramdata != null && paramdata.Length > 0)
             {
-                foreach (var p in parameters)
+                IDictionary<string, object> dict = serializer.DeserializeObject(paramdata) as IDictionary<string, object>;
+                if (dict != null)
                 {
-                    p.Value += " has been set by server!";
+                    retString = serializer.Serialize(dict);
+                    Console.WriteLine("Dict: " + retString);
                 }
             }
-            else
-            {
-                Console.WriteLine("Parameters is null!");
-            }
-            return parameters;
+
+            return retString;
         }
 
         public string testMethod(string managername, string methodname, System.IO.Stream data)

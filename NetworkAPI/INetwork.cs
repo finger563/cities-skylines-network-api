@@ -28,18 +28,10 @@ namespace NetworkAPI
     [ServiceContract]
     public interface INetwork
     {
-        [WebInvoke(UriTemplate = "call",
-            Method = "POST",
-            RequestFormat = WebMessageFormat.Json,
-            BodyStyle = WebMessageBodyStyle.Bare,
+        [WebGet(UriTemplate = "/managers/{managername}/call/{methodname}?params={paramdata}",
             ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<MethodParameter> CallManagerMethod(List<MethodParameter> parameters);
-
-        [WebInvoke(UriTemplate = "/managers/{managername}/call/{methodname}",
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        string testMethod(string managername, string methodname, System.IO.Stream data);
+        [OperationContract(Name = "testMethod")]
+        string CallManagerMethod(string managername, string methodname, string paramdata);
 
         [WebGet(UriTemplate = "assemblies/{assemblyName}", 
             BodyStyle = WebMessageBodyStyle.Bare, 

@@ -17,61 +17,68 @@ var obj = [
     }
 ];
 
-var logFunc = function (error, response, body) {
-    if (error) {
-	console.log("Error: " + error);
-    }
-    else if (response.statusCode != 200) {
-	console.log("Status: " + response.statusCode);
-	console.log("Response: " + JSON.stringify(response, null, 2));
-    }
-    console.log(body);
+obj =     {
+    "Name": "name2",
+    "Type": "boolean",
+    "Value": "this is another value",
+    "arr": [
+	{
+	    "name": "object1"
+	},
+	{
+	    "name": "object2"
+	}
+    ]
 };
 
+
 var tests = [
+
     {
 	"uri": citiesHost + '/managers',
 	"method": "GET"
     },
     {
-	"uri": citiesHost + '/managers/CitizenManager/call/createCitizen',
-	"method": "POST",
-	"content-type": "application/json",
-	"data": JSON.stringify(obj)
+	"uri": citiesHost + '/managers/CitizenManager/call/createCitizen?params='+JSON.stringify(obj),
+	"method": "GET",
     },
     {
 	"uri": testHost + '/managers',
 	"method": "GET"
     },
     {
-	"uri": testHost + '/call',
-	"method": "POST",
-	"content-type": "application/json",
-	"data": JSON.stringify(obj)
-    },
-    {
-	"uri": testHost + '/managers/CitizenManager/call/CreateCitizen',
-	"method": "POST",
-	"content-type": "text/plain",
-	"data": JSON.stringify(obj)
+	"uri": testHost + '/managers/CitizenManager/call/CreateCitizen?params='+JSON.stringify(obj),
+	"method": "GET",
     },
 ];
 
-for (var i in tests) {
-    var t = tests[i];
+tests.map((t) => {
     var options = {
 	method: t.method,
-	uri: t.uri,
-	headers: {
-	    'content-type': t["content-type"]+'; charset=utf-8'
-	},
+	uri: t.uri
     };
+    if (t["content-type"])
+	options.headers['content-type'] = t["content-type"]+'; charset=utf-8';
     if (t.data)
 	options.body = t.data;
 
     request(
 	options,
-	logFunc
+	function (error, response, body) {
+	    console.log('\n\nConnected to ' + t.uri + ':');
+	    console.log('------');
+	    if (error) {
+		console.log(error);
+		return;
+	    }
+	    else if (response.statusCode != 200) {
+		console.log("Status: " + response.statusCode);
+		console.log("Response: " + JSON.stringify(response, null, 2));
+		return;
+	    }
+	    //var testObj = JSON.parse(body);
+	    console.log(body);
+	}
     );
-}
+});
 
