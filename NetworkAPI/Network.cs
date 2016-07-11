@@ -28,36 +28,54 @@ namespace NetworkAPI
             serializer = new JavaScriptSerializer();
         }
 
+	/* Handles commands of the following forms:
+
+	   assemblies
+	   assemblies/{assemblyName}
+	   managers
+	   managers/{managername}
+	   managers/{managername}/{type}
+	   managers/{managername}/{type}/{propertyname}
+	   managers/{managername}/call/{methodname}?params={paramdata}
+
+	   And always returns an object which can be JSON stringified
+	 */
         public object ParseCommand(string command)
         {
             string[] commands = command.Trim('/').Split('/');
             if (commands.Length > 0)
             {
-                if (commands[0] == "managers")
+		string root = commands[0];
+                if (root == "managers")
                 {
                     if (commands.Length > 1 && commands[1] != null)
                     {
+			string mgr = commands[1];
                         if (commands.Length > 2 && commands[2] != null)
                         {
+			    string type = commands[2];
                             if (commands.Length > 3 && commands[3] != null)
                             {
-                                if (commands[2] == "call")
+                                if (type == "call")
                                 {
-                                    return "Calling " + commands[3];
+				    string[] data = commands[3].Split('?');
+				    string method = data[0];
+				    string paramData = data[1].Split('=')[1];
+                                    return CallManagerMethod(mgr, method, paramData);
                                 }
-                                return GetManagerProperty(commands[1], commands[2], commands[3]);
+                                return GetManagerProperty(mgr, type, commands[3]);
                             }
-                            if (commands[2] == "call")
+                            if (type == "call")
                             {
                                 return "Error: You must provide method name and arguments!";
                             }
-                            return GetManagerProperties(commands[1], commands[2]);
+                            return GetManagerProperties(mgr, type);
                         }
-                        return GetManagerTypes(commands[1]);
+                        return GetManagerTypes(mgr);
                     }
                     return GetManagers();
                 }
-                else if (commands[0] == "assemblies")
+                else if (root == "assemblies")
                 {
                     if (commands.Length > 1 && commands[1] != null)
                     {
