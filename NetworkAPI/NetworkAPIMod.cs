@@ -52,8 +52,7 @@ namespace NetworkAPI
                         "Got connection from: " + sender.ToString() + ", message: " +
                         command);
 
-                    string welcome = "Welcome to test server" + Environment.NewLine;
-                    welcome += new JavaScriptSerializer().Serialize(networkAPI.ParseCommand(command));
+                    string welcome = new JavaScriptSerializer().Serialize(networkAPI.ParseCommand(command));
                     data = Encoding.ASCII.GetBytes(welcome);
                     listener.Send(data, data.Length, sender);
                 }

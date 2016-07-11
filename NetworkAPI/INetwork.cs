@@ -31,7 +31,7 @@ namespace NetworkAPI
         [WebGet(UriTemplate = "/managers/{managername}/call/{methodname}?params={paramdata}",
             ResponseFormat = WebMessageFormat.Json)]
         [OperationContract(Name = "testMethod")]
-        string CallManagerMethod(string managername, string methodname, string paramdata);
+        object CallManagerMethod(string managername, string methodname, string paramdata);
 
         [WebGet(UriTemplate = "assemblies/{assemblyName}", 
             BodyStyle = WebMessageBodyStyle.Bare, 
@@ -61,6 +61,6 @@ namespace NetworkAPI
             BodyStyle = WebMessageBodyStyle.Bare, 
             ResponseFormat = WebMessageFormat.Json)]
         [OperationContract]
-        string GetManagerProperty(string managername, string type, string propertyname);
+        object GetManagerProperty(string managername, string type, string propertyname);
     }
 }

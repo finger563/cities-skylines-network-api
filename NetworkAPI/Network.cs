@@ -190,9 +190,25 @@ namespace NetworkAPI
             return retObj;
         }
 
-        public string GetManagerProperty(string managername, string type, string propertyname)
+	public object GetManagerMethod(string managername, string methodname)
+	{
+	    Type t = getAssemblyType("Assembly-CSharp", managername);
+	    MemberInfo[] m = t.GetMember(methodname);
+	    Dictionary<string, Dictionary<string, string>> parameters =
+		new Dictionary<string, Dictionary<string, string>>();
+	    foreach (ParameterInfo pi in ((MethodInfo) m[0]).GetParameters())
+	    {
+		    Dictionary<string, string> param = new Dictionary<string, string>();
+		    param.Add("name", pi.Name);
+		    param.Add("position", pi.Position.ToString());
+		    param.Add("type", pi.ParameterType.ToString());
+		    parameters.Add(pi.Name, param);
+	    }
+	    return parameters;
+	}
+
+        public object GetManagerProperty(string managername, string type, string propertyname)
         {
-            string returnString = "GetManagerProperty:: ";
             try
             {
                 Type t = getAssemblyType("Assembly-CSharp", managername);
@@ -200,81 +216,74 @@ namespace NetworkAPI
 
                 if (type == "properties")
                 {
-                    returnString += getPropertyValue(managername, propertyname);
+                    return getPropertyValue(managername, propertyname);
                 }
                 else if (type == "methods")
                 {
-                    MemberInfo[] m = t.GetMember(propertyname);
-                    foreach (ParameterInfo pi in ((MethodInfo) m[0]).GetParameters())
-                    {
-                        returnString += string.Format("{0} {1}, ", pi.ParameterType, pi.Name);
-                    }
+                    return GetManagerMethod(managername, propertyname);
                 }
                 else if (type == "members")
                 {
                     MemberInfo[] pa = t.GetMember(propertyname);
+		    Dictionary<string, object> retDict = new Dictionary<string, object>();
                     foreach (var p in pa)
                     {
                         object[] attrs = p.GetCustomAttributes(false);
                         foreach (object o in attrs)
                         {
-                            returnString += o.ToString() + ' ';
+			    retDict.Add(o.ToString(), o.ToString());
                         }
                         if (p.MemberType == MemberTypes.Method)
                         {
-                            foreach (ParameterInfo pi in ((MethodInfo) p).GetParameters())
-                            {
-                                returnString += string.Format("{0} {1}, ", pi.ParameterType, pi.Name);
-                            }
+			    retDict.Add(p.Name, GetManagerMethod(managername, p.Name));
                         }
                         if (p.MemberType == MemberTypes.Property)
                         {
-                            returnString += getPropertyValue(managername, propertyname);
+			    retDict.Add(p.Name, getPropertyValue(managername, propertyname));
                         }
                     }
+		    return retDict;
                 }
                 else if (type == "fields")
                 {
                     FieldInfo p = t.GetField(propertyname);
-                    returnString += p.GetValue(manager);
+                    return p.GetValue(manager);
                 }
                 else if (type == "events")
                 {
-
                 }
                 else if (type == "nestedTypes")
                 {
                     //Type nt = t.GetNestedType(propertyname);
                     Citizen testObj = new Citizen();
-                    returnString += serializer.Serialize(testObj);
+                    return testObj;
                 }
             }
             catch (Exception e)
             {
-                returnString += "ERROR: " + e.Message;
+                return e;
             }
-            return returnString;
+            return "Unhandled method!";
         }
 
-        public string CallManagerMethod(string managername, string methodname, string paramdata)
+        public object CallManagerMethod(string managername, string methodname, string paramdata)
         {
             string debugMessage = "Received GET for CallManagerMethod: " + paramdata;
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
             Console.WriteLine(debugMessage);
 
-            string retString = "CallManagerMethod:: ";
-            
+	    Dictionary<string, object> dict = new Dictionary<string, object>();            
+
             if (paramdata != null && paramdata.Length > 0)
             {
-                IDictionary<string, object> dict = serializer.DeserializeObject(paramdata) as IDictionary<string, object>;
+		dict = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
                 if (dict != null)
                 {
-                    retString += serializer.Serialize(dict);
-                    Console.WriteLine("Dict: " + retString);
+		    Console.WriteLine("Dict: " + serializer.Serialize(dict));
                 }
             }
 
-            return retString;
+            return dict;
         }
     }
 }
