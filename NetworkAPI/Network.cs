@@ -100,7 +100,6 @@ namespace NetworkAPI
         public List<string> GetAssemblyTypes(string assemblyName)
         {
             List<string> types = new List<string>();
-            types.Add("GetAssemblyTypes:: ");
             Assembly assembly = Assembly.Load(assemblyName);
             types = assembly.GetTypes().Select(x => x.Name).ToList<string>();
             return types;
@@ -109,7 +108,6 @@ namespace NetworkAPI
         public List<string> GetManagers()
         {
             List<string> managers = new List<string>();
-            managers.Add("GetManagers:: ");
             try
             {
                 Assembly assembly = Assembly.Load("Assembly-CSharp");
@@ -126,17 +124,10 @@ namespace NetworkAPI
 
         public List<string> GetManagerTypes(string managername)
         {
-            List<string> types = new List<string>();
-            types.Add("members");
-            types.Add("methods");
-            types.Add("properties");
-            types.Add("fields");
-            types.Add("events");
-            types.Add("nestedTypes");
-            return types;
+            return new List<string> { "members", "methods", "properties", "fields", "events", "nestedTypes" };
         }
-
-        public List<string> GetManagerProperties(string managername, string type)
+    
+    public List<string> GetManagerProperties(string managername, string type)
         {
             List<string> properties = new List<string>();
             properties.Add("GetManagerProperties:: ");
@@ -178,7 +169,16 @@ namespace NetworkAPI
 
         public Type getAssemblyType(string assemblyName, string typeName)
         {
-            return Assembly.Load(assemblyName).GetType(typeName);
+            Type t;
+            try
+            {
+                t = Assembly.Load(assemblyName).GetType(typeName);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Assembly "+assemblyName+" does not contain " + typeName + "!");
+            }
+            return t;
         }
 
         public object getInstance(string assemblyName, string typeName)
@@ -203,17 +203,32 @@ namespace NetworkAPI
         public object GetManagerMethod(string managername, string methodname)
         {
             Type t = getAssemblyType("Assembly-CSharp", managername);
-            MemberInfo[] m = t.GetMember(methodname);
+            MemberInfo[] m;
+            try
+            {
+                m = t.GetMember(methodname);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Manager " + managername + " does not have member: " + methodname);
+            }
             Dictionary<string, Dictionary<string, string>> parameters =
                 new Dictionary<string, Dictionary<string, string>>();
-            foreach (ParameterInfo pi in ((MethodInfo)m[0]).GetParameters())
+            try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param.Add("name", pi.Name);
-                param.Add("position", pi.Position.ToString());
-                param.Add("type", pi.ParameterType.ToString());
-                param.Add("default value", pi.DefaultValue.ToString());
-                parameters.Add(pi.Name, param);
+                foreach (ParameterInfo pi in ((MethodInfo)m[0]).GetParameters())
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param.Add("name", pi.Name);
+                    param.Add("position", pi.Position.ToString());
+                    param.Add("type", pi.ParameterType.ToString());
+                    param.Add("default value", pi.DefaultValue.ToString());
+                    parameters.Add(pi.Name, param);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Method " + methodname + " is not a valid method!");
             }
             return parameters;
         }
@@ -272,7 +287,7 @@ namespace NetworkAPI
             }
             catch (Exception e)
             {
-                return e;
+                return e.Message;
             }
             return "Unhandled method!";
         }
@@ -283,18 +298,31 @@ namespace NetworkAPI
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
             Console.WriteLine(debugMessage);
 
-            Dictionary<string, object> dict = new Dictionary<string, object>();
+            Dictionary<string, Dictionary<string, string>> paramDefs = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
-            if (paramdata != null && paramdata.Length > 0)
+            try
             {
-                dict = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
-                if (dict != null)
-                {
-                    Console.WriteLine("Dict: " + serializer.Serialize(dict));
-                }
+                paramDefs = GetManagerMethod(managername, methodname) as Dictionary<string, Dictionary<string, string>>;
+                inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
             }
 
-            return dict;
+            if (paramDefs == null || paramDefs.Count == 0)
+            {
+                return "Method doesn't require parameters";
+            }
+            else if (inputParams != null && inputParams.Count > 0)
+            {
+                return inputParams;
+            }
+            else
+            {
+                return "Method requires parameters!";
+            }
         }
     }
 }
