@@ -8,7 +8,6 @@ client.on('error', (err) => {
 });
 
 client.on('message', (msg, rinfo) => {
-    console.log(`client got: ${msg} from ${rinfo.address}:${rinfo.port}`);
     var obj = JSON.parse(msg);
     console.log(JSON.stringify(obj, null, 2));
     process.exit();
