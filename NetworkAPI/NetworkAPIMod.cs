@@ -38,28 +38,41 @@ namespace NetworkAPI
 
         public void ListenerThreadFunc()
         {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
             while (true)
             {
+                byte[] data = new byte[1024];
+                IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
                 try
                 {
-                    byte[] data = new byte[1024];
-                    IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
                     data = listener.Receive(ref sender);
-
-                    string command = Encoding.ASCII.GetString(data, 0, data.Length);
-
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                        "Got connection from: " + sender.ToString() + ", message: " +
-                        command);
-
-                    string welcome = new JavaScriptSerializer().Serialize(networkAPI.ParseCommand(command));
-                    data = Encoding.ASCII.GetBytes(welcome);
-                    listener.Send(data, data.Length, sender);
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e.Message);
+                    continue;
                 }
+
+                string command = Encoding.ASCII.GetString(data, 0, data.Length);
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    "Got connection from: " + sender.ToString() + ", message: " +
+                    command);
+
+                string welcome = "This should be empty!";
+                try
+                {
+                    welcome = serializer.Serialize(networkAPI.ParseCommand(command));
+                }
+                catch (Exception e)
+                {
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
+                        e.Message);
+                    Debug.Log(e.Message);
+                    welcome = serializer.Serialize(e.Message);
+                }
+                
+                data = Encoding.ASCII.GetBytes(welcome);
+                listener.Send(data, data.Length, sender);
             }
         }
 

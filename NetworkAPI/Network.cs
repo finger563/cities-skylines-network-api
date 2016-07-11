@@ -18,7 +18,7 @@ using System.ServiceModel.Channels;
 namespace NetworkAPI
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
-        ConcurrencyMode = ConcurrencyMode.Multiple)]
+		     ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class Network : INetwork
     {
         JavaScriptSerializer serializer;
@@ -28,39 +28,49 @@ namespace NetworkAPI
             serializer = new JavaScriptSerializer();
         }
 
-	/* Handles commands of the following forms:
-
-	   assemblies
-	   assemblies/{assemblyName}
-	   managers
-	   managers/{managername}
-	   managers/{managername}/{type}
-	   managers/{managername}/{type}/{propertyname}
-	   managers/{managername}/call/{methodname}?params={paramdata}
-
-	   And always returns an object which can be JSON stringified
-	 */
+        /* 
+         * Handles commands of the following forms:
+         * 
+         *         assemblies
+         *         assemblies/{assemblyName}
+         *         managers
+         *         managers/{managername}
+         *         managers/{managername}/{type}
+         *         managers/{managername}/{type}/{propertyname}
+         *         managers/{managername}/call/{methodname}?params={paramdata}
+         *         
+         * And always returns an object which can be JSON stringified
+        */
         public object ParseCommand(string command)
         {
             string[] commands = command.Trim('/').Split('/');
             if (commands.Length > 0)
             {
-		string root = commands[0];
+                string root = commands[0];
                 if (root == "managers")
                 {
                     if (commands.Length > 1 && commands[1] != null)
                     {
-			string mgr = commands[1];
+                        string mgr = commands[1];
                         if (commands.Length > 2 && commands[2] != null)
                         {
-			    string type = commands[2];
+                            string type = commands[2];
                             if (commands.Length > 3 && commands[3] != null)
                             {
                                 if (type == "call")
                                 {
-				    string[] data = commands[3].Split('?');
-				    string method = data[0];
-				    string paramData = data[1].Split('=')[1];
+                                    string[] data = commands[3].Split(new char[]{'?'}, 2);
+                                    string method = data[0];
+                                    string paramData = "{}";
+                                    if (data.Length > 1)
+                                    {
+                                        if (data.Length == 2)
+                                        {
+                                            string[] d = data[1].Split(new char[] { '=' }, 2);
+                                            if (d.Length == 2)
+                                                paramData = d[1];
+                                        }
+                                    }
                                     return CallManagerMethod(mgr, method, paramData);
                                 }
                                 return GetManagerProperty(mgr, type, commands[3]);
@@ -190,22 +200,23 @@ namespace NetworkAPI
             return retObj;
         }
 
-	public object GetManagerMethod(string managername, string methodname)
-	{
-	    Type t = getAssemblyType("Assembly-CSharp", managername);
-	    MemberInfo[] m = t.GetMember(methodname);
-	    Dictionary<string, Dictionary<string, string>> parameters =
-		new Dictionary<string, Dictionary<string, string>>();
-	    foreach (ParameterInfo pi in ((MethodInfo) m[0]).GetParameters())
-	    {
-		    Dictionary<string, string> param = new Dictionary<string, string>();
-		    param.Add("name", pi.Name);
-		    param.Add("position", pi.Position.ToString());
-		    param.Add("type", pi.ParameterType.ToString());
-		    parameters.Add(pi.Name, param);
-	    }
-	    return parameters;
-	}
+        public object GetManagerMethod(string managername, string methodname)
+        {
+            Type t = getAssemblyType("Assembly-CSharp", managername);
+            MemberInfo[] m = t.GetMember(methodname);
+            Dictionary<string, Dictionary<string, string>> parameters =
+                new Dictionary<string, Dictionary<string, string>>();
+            foreach (ParameterInfo pi in ((MethodInfo)m[0]).GetParameters())
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("name", pi.Name);
+                param.Add("position", pi.Position.ToString());
+                param.Add("type", pi.ParameterType.ToString());
+                param.Add("default value", pi.DefaultValue.ToString());
+                parameters.Add(pi.Name, param);
+            }
+            return parameters;
+        }
 
         public object GetManagerProperty(string managername, string type, string propertyname)
         {
@@ -225,24 +236,24 @@ namespace NetworkAPI
                 else if (type == "members")
                 {
                     MemberInfo[] pa = t.GetMember(propertyname);
-		    Dictionary<string, object> retDict = new Dictionary<string, object>();
+                    Dictionary<string, object> retDict = new Dictionary<string, object>();
                     foreach (var p in pa)
                     {
                         object[] attrs = p.GetCustomAttributes(false);
                         foreach (object o in attrs)
                         {
-			    retDict.Add(o.ToString(), o.ToString());
+                            retDict.Add(o.ToString(), o.ToString());
                         }
                         if (p.MemberType == MemberTypes.Method)
                         {
-			    retDict.Add(p.Name, GetManagerMethod(managername, p.Name));
+                            retDict.Add(p.Name, GetManagerMethod(managername, p.Name));
                         }
                         if (p.MemberType == MemberTypes.Property)
                         {
-			    retDict.Add(p.Name, getPropertyValue(managername, propertyname));
+                            retDict.Add(p.Name, getPropertyValue(managername, propertyname));
                         }
                     }
-		    return retDict;
+                    return retDict;
                 }
                 else if (type == "fields")
                 {
@@ -272,14 +283,14 @@ namespace NetworkAPI
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
             Console.WriteLine(debugMessage);
 
-	    Dictionary<string, object> dict = new Dictionary<string, object>();            
+            Dictionary<string, object> dict = new Dictionary<string, object>();
 
             if (paramdata != null && paramdata.Length > 0)
             {
-		dict = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
+                dict = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
                 if (dict != null)
                 {
-		    Console.WriteLine("Dict: " + serializer.Serialize(dict));
+                    Console.WriteLine("Dict: " + serializer.Serialize(dict));
                 }
             }
 
