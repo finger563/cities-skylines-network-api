@@ -270,13 +270,30 @@ namespace NetworkAPI
             /*
             Type rbai = getAssemblyType("Assembly-CSharp", "RoadBaseAI");
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, rbai.ToString());
+
+            ushort nodeId;
+            ushort segmentId;
+            var currentFrameIndex = SimulationManager.instance.m_currentFrameIndex;
+            RoadBaseAI.TrafficLightState vehicleLightState;
+            RoadBaseAI.TrafficLightState pedestrianLightState;
+            bool vehicles;
+            bool pedestrians;
+            RoadBaseAI.GetTrafficLightState(
+                nodeID,
+                ref NetManager.instance.m_segments.m_buffer[segmentId],
+                currentFrameIndex - 256u,
+                out vehicleLightState,
+                out pedestrianLightState,
+                out vehicles,
+                out pedestrians
+                );
             */
 
             try
             {
                 paramDefs = GetObjectMethod(assemblyName, objName, methodname) as List<Dictionary<string, string>>;
                 inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
-                if (inputParams.ContainsKey("useInstance"))
+                if (inputParams.ContainsKey("useInstance") && (bool)inputParams["useInstance"])
                 {
                     instance = GetInstance(assemblyName, objName);
                 }
@@ -292,8 +309,8 @@ namespace NetworkAPI
             }
             else if (inputParams != null && inputParams.Count > 0 && ParametersMatchDefinitions(paramDefs, inputParams))
             {
-                object[] parameters = ConvertParameters(paramDefs, inputParams);
-                return mi.Invoke(instance, parameters);
+                List<object> parameters = ConvertParameters(paramDefs, inputParams);
+                return mi.Invoke(instance, parameters.ToArray());
             }
             else
             {
@@ -301,10 +318,24 @@ namespace NetworkAPI
             }
         }
 
-        public object[] ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
+        public List<object> ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
         {
-            List<object> retVals = new List<object>();
-            return retVals.ToArray();
+            List<object> parameterObjects = new List<object>();
+            var paramArray = parameters["parameters"] as Array;
+            for (int i=0; i < paramArray.Length; i++)
+            {
+                Dictionary<string, object> p = (Dictionary<string, object>)paramArray.GetValue(i);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    (string)p["name"] + ": " +(string)p["type"]);
+                Type t = Type.GetType((string)p["type"]);
+                /*
+                object o = Activator.CreateInstance(t);
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                (string)p["type"] + ": " + serializer.Serialize(o));
+                parameterObjects.Add(o);
+                */
+            }
+            return parameterObjects;
         }
 
         public bool ParametersMatchDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)

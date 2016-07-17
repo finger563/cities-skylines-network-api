@@ -14,6 +14,7 @@ client.on('message', (msg, rinfo) => {
 });
 
 var citizenManagerParams = {
+    "useInstance": true,
     "parameters": [
 	{
 	    "name": "citizen",
@@ -39,6 +40,7 @@ var citizenManagerParams = {
 };
 
 var roadBaseAIParams = {
+    "useInstance": false,
     "parameters": [
 	{
 	    "name": "nodeID",
@@ -63,10 +65,12 @@ var roadBaseAIParams = {
 	{
 	    "name": "vehicles",
 	    "type": "System.Boolean",
+	    "value": false
 	},
 	{
 	    "name": "pedestrians",
 	    "type": "System.Boolean",
+	    "value": false
 	}
     ]
 };
@@ -81,6 +85,7 @@ var rbaiMessage = new Buffer(
 	JSON.stringify(roadBaseAIParams)
 );
 
+//var message = cmMessage;
 var message = rbaiMessage;
 
 if (process.argv[2])
