@@ -263,7 +263,9 @@ namespace NetworkAPI
             List<Dictionary<string, string>> paramDefs = new List<Dictionary<string, string>>();
             Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
-            bool useInstance = false;
+            Type t = GetAssemblyType(assemblyName, objName);
+            MethodInfo mi = t.GetMethod(methodname);
+            object instance = null;
 
             /*
             Type rbai = getAssemblyType("Assembly-CSharp", "RoadBaseAI");
@@ -275,7 +277,9 @@ namespace NetworkAPI
                 paramDefs = GetObjectMethod(assemblyName, objName, methodname) as List<Dictionary<string, string>>;
                 inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
                 if (inputParams.ContainsKey("useInstance"))
-                    useInstance = (bool)inputParams["useInstance"];
+                {
+                    instance = GetInstance(assemblyName, objName);
+                }
             }
             catch (Exception e)
             {
@@ -284,23 +288,12 @@ namespace NetworkAPI
 
             if (paramDefs == null || paramDefs.Count == 0)
             {
-                Type t = GetAssemblyType(assemblyName, objName);
-                MethodInfo mi = t.GetMethod(methodname);
-                if (useInstance)
-                {
-                    object i = GetInstance(assemblyName, objName);
-                    return mi.Invoke(i, null);
-                }
-                else
-                {
-                    return mi.Invoke(null, null);
-                }
-                return "Method doesn't require parameters";
+                return mi.Invoke(instance, null);
             }
             else if (inputParams != null && inputParams.Count > 0 && ParametersMachDefinitions(paramDefs, inputParams))
             {
-                List<object> parameters = ConvertParameters(paramDefs, inputParams);
-                return inputParams;
+                object[] parameters = ConvertParameters(paramDefs, inputParams);
+                return mi.Invoke(instance, parameters);
             }
             else
             {
@@ -308,10 +301,10 @@ namespace NetworkAPI
             }
         }
 
-        public List<object> ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
+        public object[] ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
         {
             List<object> retVals = new List<object>();
-            return retVals;
+            return retVals.ToArray();
         }
 
         public bool ParametersMachDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)

@@ -13,7 +13,7 @@ client.on('message', (msg, rinfo) => {
     process.exit();
 });
 
-var params = {
+var citizenManagerParams = {
     "parameters": [
 	{
 	    "name": "citizen",
@@ -38,7 +38,7 @@ var params = {
     ]
 };
 
-params = {
+var roadBaseAIParams = {
     "parameters": [
 	{
 	    "name": "nodeID",
@@ -71,11 +71,17 @@ params = {
     ]
 };
 
-var message = new Buffer(
-//    '/managers/CitizenManager/call/CreateCitizen?params=' +
-    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
-	JSON.stringify(params)
+var cmMessage = new Buffer(
+    'Assembly-CSharp/CitizenManager/call/CreateCitizen?params=' +
+	JSON.stringify(citizenManagerParams)
 );
+
+var rbaiMessage = new Buffer(
+    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
+	JSON.stringify(roadBaseAIParams)
+);
+
+var message = rbaiMessage;
 
 if (process.argv[2])
     message = process.argv[2];
