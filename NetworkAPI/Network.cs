@@ -212,8 +212,7 @@ namespace NetworkAPI
             {
                 throw new Exception("Manager " + managername + " does not have member: " + methodname);
             }
-            Dictionary<string, Dictionary<string, string>> parameters =
-                new Dictionary<string, Dictionary<string, string>>();
+            List<Dictionary<string, string>> parameters = new List<Dictionary<string, string>>();
             try
             {
                 foreach (ParameterInfo pi in ((MethodInfo)m[0]).GetParameters())
@@ -223,7 +222,7 @@ namespace NetworkAPI
                     param.Add("position", pi.Position.ToString());
                     param.Add("type", pi.ParameterType.ToString());
                     param.Add("default value", pi.DefaultValue.ToString());
-                    parameters.Add(pi.Name, param);
+                    parameters.Add(param);
                 }
             }
             catch (Exception e)
@@ -298,12 +297,12 @@ namespace NetworkAPI
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
             Console.WriteLine(debugMessage);
 
-            Dictionary<string, Dictionary<string, string>> paramDefs = new Dictionary<string, Dictionary<string, string>>();
+            List<Dictionary<string, string>> paramDefs = new List<Dictionary<string, string>>();
             Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
             try
             {
-                paramDefs = GetManagerMethod(managername, methodname) as Dictionary<string, Dictionary<string, string>>;
+                paramDefs = GetManagerMethod(managername, methodname) as List<Dictionary<string, string>>;
                 inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
             }
             catch (Exception e)
@@ -315,14 +314,36 @@ namespace NetworkAPI
             {
                 return "Method doesn't require parameters";
             }
-            else if (inputParams != null && inputParams.Count > 0)
+            else if (inputParams != null && inputParams.Count > 0 && ParametersMachDefinitions(paramDefs, inputParams))
             {
                 return inputParams;
             }
             else
             {
-                return "Method requires parameters!";
+                return "Method requires " + paramDefs.Count + " parameters!";
             }
+        }
+
+        public bool ParametersMachDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
+        {
+            // check here if the method's parameter definitions match the input parameter spec
+            int numDefs = defs.Count;
+            var paramArray = parameters["parameters"] as Array;
+            int numParams = paramArray.Length;
+            if (numDefs > numParams)
+                return false;
+            for (int i=0; i < paramArray.Length; i++)
+            {
+                Dictionary<string, object> t = (Dictionary<string, object>)paramArray.GetValue(i);
+
+                if ((string)t["type"] != (string)defs[i]["type"])
+                {
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
+                        "Parameter: " + t["name"] + " has wrong type: " + t["type"] + ", should be: " + defs[i]["type"]);
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
