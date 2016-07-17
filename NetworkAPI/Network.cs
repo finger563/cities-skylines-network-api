@@ -43,7 +43,15 @@ namespace NetworkAPI
         */
         public object ParseCommand(string command)
         {
-            string[] commands = command.Trim('/').Split('/');
+            string[] splits = command.Split(new char[] { '?' }, 2);
+            string[] commands = splits[0].Trim('/').Split('/');
+            string paramData = "{}";
+            if (splits.Length > 1)
+            {
+                string[] d = splits[1].Split(new char[] { '=' }, 2);
+                if (d.Length == 2)
+                    paramData = d[1];
+            }
             if (commands.Length > 0)
             {
                 string root = commands[0];
@@ -57,18 +65,7 @@ namespace NetworkAPI
                         {
                             if (type == "call")
                             {
-                                string[] data = commands[3].Split(new char[] { '?' }, 2);
-                                string method = data[0];
-                                string paramData = "{}";
-                                if (data.Length > 1)
-                                {
-                                    if (data.Length == 2)
-                                    {
-                                        string[] d = data[1].Split(new char[] { '=' }, 2);
-                                        if (d.Length == 2)
-                                            paramData = d[1];
-                                    }
-                                }
+                                string method = commands[3];
                                 return CallObjectMethod(root, obj, method, paramData);
                             }
                             return GetObjectProperty(root, obj, type, commands[3]);
@@ -266,6 +263,8 @@ namespace NetworkAPI
             List<Dictionary<string, string>> paramDefs = new List<Dictionary<string, string>>();
             Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
+            bool useInstance = false;
+
             /*
             Type rbai = getAssemblyType("Assembly-CSharp", "RoadBaseAI");
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, rbai.ToString());
@@ -275,6 +274,8 @@ namespace NetworkAPI
             {
                 paramDefs = GetObjectMethod(assemblyName, objName, methodname) as List<Dictionary<string, string>>;
                 inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
+                if (inputParams.ContainsKey("useInstance"))
+                    useInstance = (bool)inputParams["useInstance"];
             }
             catch (Exception e)
             {
@@ -283,6 +284,17 @@ namespace NetworkAPI
 
             if (paramDefs == null || paramDefs.Count == 0)
             {
+                Type t = GetAssemblyType(assemblyName, objName);
+                MethodInfo mi = t.GetMethod(methodname);
+                if (useInstance)
+                {
+                    object i = GetInstance(assemblyName, objName);
+                    return mi.Invoke(i, null);
+                }
+                else
+                {
+                    return mi.Invoke(null, null);
+                }
                 return "Method doesn't require parameters";
             }
             else if (inputParams != null && inputParams.Count > 0 && ParametersMachDefinitions(paramDefs, inputParams))
