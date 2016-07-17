@@ -336,10 +336,11 @@ namespace NetworkAPI
             {
                 Dictionary<string, object> t = (Dictionary<string, object>)paramArray.GetValue(i);
 
-                if ((string)t["type"] != (string)defs[i]["type"])
+                if ((string)t["type"] != (string)defs[i]["type"] ||
+                    (string)t["name"] != (string)defs[i]["name"])
                 {
                     DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
-                        "Parameter: " + t["name"] + " has wrong type: " + t["type"] + ", should be: " + defs[i]["type"]);
+                        "Parameter: " + t["name"] + ", " + t["type"] + " is incorrect, should be: " + defs[i]["name"] + ", " + defs[i]["type"]);
                     return false;
                 }
             }
