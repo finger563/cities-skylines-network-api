@@ -83,19 +83,77 @@ var cmp = {
 };
 
 var newTest = {
-    "name": "NetManager",
+    "name": "RoadBaseAI",
     "type": "class",
     "assembly": "Assembly-CSharp",
     "then": {
-	"name": "instance",
-	"type": "member",
-	"then": {
-	    "name": "m_segments",
-	    "then": {
-		"name": "m_buffer"
-		"index": 0
+	"name": "GetTrafficLightState",
+	"type": "method",
+	"parameters": [
+	    {
+		"name": "nodeId",
+		"type": "System.UInt32",
+		"value": 154
+	    },
+	    {
+		"name": "segment",
+		"type": "NetSegment&",
+		"value": {
+		    "name": "NetManager",
+		    "type": "class",
+		    "assembly": "Assembly-CSharp",
+		    "then": {
+			"name": "instance",
+			"type": "member",
+			"then": {
+			    "name": "m_segments",
+			    "then": {
+				"name": "m_buffer"
+				"index": 0
+			    }
+			}
+		    }
+		}
+	    },
+	    {
+		"name": "simulation frame",
+		"type": "System.UInt32",
+		"value": {
+		    "name": "SimulationManager",
+		    "type": "class",
+		    "assembly": "Assembly-CSharp",
+		    "then": {
+			"name": "instance",
+			"type": "member",
+			"then": {
+			    "name": "m_currentFrameIndex"
+			}
+		    }
+		}
+	    },
+	    {
+		"name": "vehicle light state",
+		"type": "RoadBaseAI+TrafficLightState",
+		"value": {
+		}
+	    },
+	    {
+		"name": "pedestrian light state",
+		"type": "RoadBaseAI+TrafficLightState",
+		"value": {
+		}
+	    },
+	    {
+		"name": "vehicles",
+		"type": "System.Boolean",
+		"value": false
+	    },
+	    {
+		"name": "pedestrians",
+		"type": "System.Boolean",
+		"value": false
 	    }
-	}
+	]
     }
 };
 
