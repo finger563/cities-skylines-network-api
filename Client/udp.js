@@ -82,6 +82,23 @@ var cmp = {
     ]
 };
 
+var newTest = {
+    "name": "NetManager",
+    "type": "class",
+    "assembly": "Assembly-CSharp",
+    "then": {
+	"name": "instance",
+	"type": "member",
+	"then": {
+	    "name": "m_segments",
+	    "then": {
+		"name": "m_buffer"
+		"index": 0
+	    }
+	}
+    }
+};
+
 var rbaip = {
     "useInstance": false,
     "parameters": [
