@@ -19,7 +19,7 @@ namespace NetworkAPI
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single,
 		     ConcurrencyMode = ConcurrencyMode.Multiple)]
-    public class Network : INetwork
+    public class Network
     {
         JavaScriptSerializer serializer;
 
@@ -47,54 +47,43 @@ namespace NetworkAPI
             if (commands.Length > 0)
             {
                 string root = commands[0];
-                if (root == "managers")
+                if (commands.Length > 1 && commands[1] != null)
                 {
-                    if (commands.Length > 1 && commands[1] != null)
+                    string obj = commands[1];
+                    if (commands.Length > 2 && commands[2] != null)
                     {
-                        string mgr = commands[1];
-                        if (commands.Length > 2 && commands[2] != null)
+                        string type = commands[2];
+                        if (commands.Length > 3 && commands[3] != null)
                         {
-                            string type = commands[2];
-                            if (commands.Length > 3 && commands[3] != null)
-                            {
-                                if (type == "call")
-                                {
-                                    string[] data = commands[3].Split(new char[]{'?'}, 2);
-                                    string method = data[0];
-                                    string paramData = "{}";
-                                    if (data.Length > 1)
-                                    {
-                                        if (data.Length == 2)
-                                        {
-                                            string[] d = data[1].Split(new char[] { '=' }, 2);
-                                            if (d.Length == 2)
-                                                paramData = d[1];
-                                        }
-                                    }
-                                    return CallManagerMethod(mgr, method, paramData);
-                                }
-                                return GetManagerProperty(mgr, type, commands[3]);
-                            }
                             if (type == "call")
                             {
-                                return "Error: You must provide method name and arguments!";
+                                string[] data = commands[3].Split(new char[] { '?' }, 2);
+                                string method = data[0];
+                                string paramData = "{}";
+                                if (data.Length > 1)
+                                {
+                                    if (data.Length == 2)
+                                    {
+                                        string[] d = data[1].Split(new char[] { '=' }, 2);
+                                        if (d.Length == 2)
+                                            paramData = d[1];
+                                    }
+                                }
+                                return CallObjectMethod(root, obj, method, paramData);
                             }
-                            return GetManagerProperties(mgr, type);
+                            return GetObjectProperty(root, obj, type, commands[3]);
                         }
-                        return GetManagerTypes(mgr);
+                        if (type == "call")
+                        {
+                            return "Error: You must provide method name and arguments!";
+                        }
+                        return GetObjectProperties(root, obj, type);
                     }
-                    return GetManagers();
+                    return GetObjectTypes(root, obj);
                 }
-                else if (root == "assemblies")
-                {
-                    if (commands.Length > 1 && commands[1] != null)
-                    {
-                        return GetAssemblyTypes(commands[1]);
-                    }
-                    return new List<string> { "Assembly-CSharp", "ICities", "ColossalManaged" };
-                }
+                return GetAssemblyTypes(root);
             }
-            return new List<string> { "managers", "assemblies"};
+            return new List<string> { "Assembly-CSharp", "ICities", "ColossalManaged" };
         }
 
         public List<string> GetAssemblyTypes(string assemblyName)
@@ -105,36 +94,17 @@ namespace NetworkAPI
             return types;
         }
 
-        public List<string> GetManagers()
-        {
-            List<string> managers = new List<string>();
-            try
-            {
-                Assembly assembly = Assembly.Load("Assembly-CSharp");
-                managers = assembly.GetTypes()
-                    .Where(x => x.Name.IndexOf("Manager") > -1)
-                    .Select(x => x.Name).ToList<string>();
-            }
-            catch (Exception e)
-            {
-                managers.Add(e.Message);
-            }
-            return managers;
-        }
-
-        public List<string> GetManagerTypes(string managername)
+        public List<string> GetObjectTypes(string assemblyName, string managername)
         {
             return new List<string> { "members", "methods", "properties", "fields", "events", "nestedTypes" };
         }
-    
-    public List<string> GetManagerProperties(string managername, string type)
+
+        public List<string> GetObjectProperties(string assemblyName, string objName, string type)
         {
             List<string> properties = new List<string>();
-            properties.Add("GetManagerProperties:: ");
             try
             {
-                Assembly assembly = Assembly.Load("Assembly-CSharp");
-                Type t = assembly.GetType(managername);
+                Type t = GetAssemblyType(assemblyName, objName);
                 if (type == "properties")
                 {
                     properties = t.GetProperties().Select(x => x.Name).ToList<string>();
@@ -167,7 +137,7 @@ namespace NetworkAPI
             return properties;
         }
 
-        public Type getAssemblyType(string assemblyName, string typeName)
+        public Type GetAssemblyType(string assemblyName, string typeName)
         {
             Type t;
             try
@@ -181,28 +151,28 @@ namespace NetworkAPI
             return t;
         }
 
-        public object getInstance(string assemblyName, string typeName)
+        public object GetInstance(string assemblyName, string typeName)
         {
-            // get the instance of the manager here:
-            Type t = getAssemblyType( assemblyName, typeName);
+            // get the instance of the object:
+            Type t = GetAssemblyType(assemblyName, typeName);
             PropertyInfo instancePropInfo = (PropertyInfo)t.GetMember("instance")[0];
             MethodInfo instanceMethodInfo = instancePropInfo.GetAccessors()[0];
             return instanceMethodInfo.Invoke(null, null);
         }
 
-        public object getPropertyValue(string managername, string name)
+        public object GetPropertyValue(string assemblyName, string objName, string name)
         {
             object retObj;
-            object manager = getInstance("Assembly-CSharp", managername);
-            Type t = getAssemblyType("Assembly-CSharp", managername);
+            object manager = GetInstance(assemblyName, objName);
+            Type t = GetAssemblyType(assemblyName, objName);
             MethodInfo mi = t.GetProperty(name).GetGetMethod();
             retObj = mi.Invoke(manager, null);
             return retObj;
         }
 
-        public object GetManagerMethod(string managername, string methodname)
+        public object GetObjectMethod(string assemblyName, string objName, string methodname)
         {
-            Type t = getAssemblyType("Assembly-CSharp", managername);
+            Type t = GetAssemblyType(assemblyName, objName);
             MemberInfo[] m;
             try
             {
@@ -210,7 +180,7 @@ namespace NetworkAPI
             }
             catch (Exception e)
             {
-                throw new Exception("Manager " + managername + " does not have member: " + methodname);
+                throw new Exception("Object " + objName + " does not have member: " + methodname);
             }
             List<Dictionary<string, string>> parameters = new List<Dictionary<string, string>>();
             try
@@ -232,46 +202,46 @@ namespace NetworkAPI
             return parameters;
         }
 
-        public object GetManagerProperty(string managername, string type, string propertyname)
+        public object GetObjectProperty(string assemblyName, string objName, string type, string propertyname)
         {
             try
             {
-                Type t = getAssemblyType("Assembly-CSharp", managername);
-                object manager = getInstance("Assembly-CSharp", managername);
-
                 if (type == "properties")
                 {
-                    return getPropertyValue(managername, propertyname);
+                    return GetPropertyValue(assemblyName, objName, propertyname);
                 }
                 else if (type == "methods")
                 {
-                    return GetManagerMethod(managername, propertyname);
+                    return GetObjectMethod(assemblyName, objName, propertyname);
                 }
                 else if (type == "members")
                 {
+                    Type t = GetAssemblyType(assemblyName, objName);
                     MemberInfo[] pa = t.GetMember(propertyname);
-                    Dictionary<string, object> retDict = new Dictionary<string, object>();
+                    List<object> retDict = new List<object>();
                     foreach (var p in pa)
                     {
                         object[] attrs = p.GetCustomAttributes(false);
                         foreach (object o in attrs)
                         {
-                            retDict.Add(o.ToString(), o.ToString());
+                            retDict.Add(o.ToString());
                         }
                         if (p.MemberType == MemberTypes.Method)
                         {
-                            retDict.Add(p.Name, GetManagerMethod(managername, p.Name));
+                            retDict.Add(GetObjectMethod(assemblyName, objName, p.Name));
                         }
                         if (p.MemberType == MemberTypes.Property)
                         {
-                            retDict.Add(p.Name, getPropertyValue(managername, propertyname));
+                            retDict.Add(GetPropertyValue(assemblyName, objName, propertyname));
                         }
                     }
                     return retDict;
                 }
                 else if (type == "fields")
                 {
+                    Type t = GetAssemblyType(assemblyName, objName);
                     FieldInfo p = t.GetField(propertyname);
+                    object manager = GetInstance(assemblyName, objName);
                     return p.GetValue(manager);
                 }
                 else if (type == "events")
@@ -279,9 +249,9 @@ namespace NetworkAPI
                 }
                 else if (type == "nestedTypes")
                 {
-                    //Type nt = t.GetNestedType(propertyname);
-                    Citizen testObj = new Citizen();
-                    return testObj;
+                    Type t = GetAssemblyType(assemblyName, objName);
+                    Type nt = t.GetNestedType(propertyname);
+                    return nt.GetMembers().Select(x => x.Name).ToList<string>();
                 }
             }
             catch (Exception e)
@@ -291,18 +261,19 @@ namespace NetworkAPI
             return "Unhandled method!";
         }
 
-        public object CallManagerMethod(string managername, string methodname, string paramdata)
+        public object CallObjectMethod(string assemblyName, string objName, string methodname, string paramdata)
         {
-            string debugMessage = "Received GET for CallManagerMethod: " + paramdata;
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, debugMessage);
-            Console.WriteLine(debugMessage);
-
             List<Dictionary<string, string>> paramDefs = new List<Dictionary<string, string>>();
             Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
+            /*
+            Type rbai = getAssemblyType("Assembly-CSharp", "RoadBaseAI");
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, rbai.ToString());
+            */
+
             try
             {
-                paramDefs = GetManagerMethod(managername, methodname) as List<Dictionary<string, string>>;
+                paramDefs = GetObjectMethod(assemblyName, objName, methodname) as List<Dictionary<string, string>>;
                 inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
             }
             catch (Exception e)
@@ -316,12 +287,19 @@ namespace NetworkAPI
             }
             else if (inputParams != null && inputParams.Count > 0 && ParametersMachDefinitions(paramDefs, inputParams))
             {
+                List<object> parameters = ConvertParameters(paramDefs, inputParams);
                 return inputParams;
             }
             else
             {
                 return "Method requires " + paramDefs.Count + " parameters!";
             }
+        }
+
+        public List<object> ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
+        {
+            List<object> retVals = new List<object>();
+            return retVals;
         }
 
         public bool ParametersMachDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
@@ -339,9 +317,9 @@ namespace NetworkAPI
                 if ((string)t["type"] != (string)defs[i]["type"] ||
                     (string)t["name"] != (string)defs[i]["name"])
                 {
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
-                        "Parameter: " + t["name"] + ", " + t["type"] + " is incorrect, should be: " + defs[i]["name"] + ", " + defs[i]["type"]);
-                    return false;
+                    string msg = "Parameter: " + t["name"] + ", " + t["type"] + " is incorrect, should be: " + defs[i]["name"] + ", " + defs[i]["type"];
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Error, msg);
+                    throw new Exception(msg);
                 }
             }
             return true;

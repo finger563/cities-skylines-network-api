@@ -13,7 +13,69 @@ client.on('message', (msg, rinfo) => {
     process.exit();
 });
 
-var message = new Buffer('/managers');
+var params = {
+    "parameters": [
+	{
+	    "name": "citizen",
+	    "type": "System.UInt32&",
+	    "value": "test string"
+	},
+	{
+	    "name": "age",
+	    "type": "System.Int32",
+	    "value": 154
+	},
+	{
+	    "name": "family",
+	    "type": "System.Int32",
+	    "value": 154
+	},
+	{
+	    "name": "r",
+	    "type": "ColossalFramework.Math.Randomizer&",
+	    "value": 154
+	}
+    ]
+};
+
+params = {
+    "parameters": [
+	{
+	    "name": "nodeID",
+	    "type": "System.UInt16",
+	},
+	{
+	    "name": "segmentData",
+	    "type": "NetSegment&",
+	},
+	{
+	    "name": "frame",
+	    "type": "System.UInt32",
+	},
+	{
+	    "name": "vehicleLightState",
+	    "type": "RoadBaseAI+TrafficLightState",
+	},
+	{
+	    "name": "pedestrianLightState",
+	    "type": "RoadBaseAI+TrafficLightState",
+	},
+	{
+	    "name": "vehicles",
+	    "type": "System.Boolean",
+	},
+	{
+	    "name": "pedestrians",
+	    "type": "System.Boolean",
+	}
+    ]
+};
+
+var message = new Buffer(
+//    '/managers/CitizenManager/call/CreateCitizen?params=' +
+    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
+	JSON.stringify(params)
+);
 
 if (process.argv[2])
     message = process.argv[2];
