@@ -290,7 +290,7 @@ namespace NetworkAPI
             {
                 return mi.Invoke(instance, null);
             }
-            else if (inputParams != null && inputParams.Count > 0 && ParametersMachDefinitions(paramDefs, inputParams))
+            else if (inputParams != null && inputParams.Count > 0 && ParametersMatchDefinitions(paramDefs, inputParams))
             {
                 object[] parameters = ConvertParameters(paramDefs, inputParams);
                 return mi.Invoke(instance, parameters);
@@ -307,7 +307,7 @@ namespace NetworkAPI
             return retVals.ToArray();
         }
 
-        public bool ParametersMachDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
+        public bool ParametersMatchDefinitions(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
         {
             // check here if the method's parameter definitions match the input parameter spec
             int numDefs = defs.Count;
