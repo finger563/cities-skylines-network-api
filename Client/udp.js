@@ -1,19 +1,36 @@
 const dgram = require('dgram');
+const Q = require('q');
 const client = dgram.createSocket('udp4');
 
-client.on('error', (err) => {
-    console.log(`client error:\n${err.stack}`);
-    client.close();
-    process.exit(1);
-});
+var simFrame = 0;
 
-client.on('message', (msg, rinfo) => {
+var simFrameRecvFunc = function(msg) {
     var obj = JSON.parse(msg);
-    console.log(JSON.stringify(obj, null, 2));
-    process.exit();
-});
+    simFrame = +obj;
+    console.log(simFrame);
+};
 
-var citizenManagerParams = {
+var send = function(msg, cb) {
+    var deferred = Q.defer();
+
+    client.on('message', (msg, rinfo) => {
+	cb(msg);
+	deferred.resolve();
+    });
+
+    client.on('error', (err) => {
+	deferred.reject(err);
+	client.close();
+	process.exit(1);
+    });
+
+    console.log('Sending: '+msg);
+    client.send(msg, 0, msg.length, 11000, 'localhost');
+
+    return deferred.promise;
+};
+
+var nmp = {
     "useInstance": true,
     "parameters": [
 	{
@@ -39,7 +56,33 @@ var citizenManagerParams = {
     ]
 };
 
-var roadBaseAIParams = {
+var cmp = {
+    "useInstance": true,
+    "parameters": [
+	{
+	    "name": "citizen",
+	    "type": "System.UInt32&",
+	    "value": "test string"
+	},
+	{
+	    "name": "age",
+	    "type": "System.Int32",
+	    "value": 154
+	},
+	{
+	    "name": "family",
+	    "type": "System.Int32",
+	    "value": 154
+	},
+	{
+	    "name": "r",
+	    "type": "ColossalFramework.Math.Randomizer&",
+	    "value": 154
+	}
+    ]
+};
+
+var rbaip = {
     "useInstance": false,
     "parameters": [
 	{
@@ -49,6 +92,7 @@ var roadBaseAIParams = {
 	{
 	    "name": "segmentData",
 	    "type": "NetSegment&",
+	    "assembly": "Assembly-CSharp"
 	},
 	{
 	    "name": "frame",
@@ -57,10 +101,12 @@ var roadBaseAIParams = {
 	{
 	    "name": "vehicleLightState",
 	    "type": "RoadBaseAI+TrafficLightState",
+	    "assembly": "Assembly-CSharp"
 	},
 	{
 	    "name": "pedestrianLightState",
 	    "type": "RoadBaseAI+TrafficLightState",
+	    "assembly": "Assembly-CSharp"
 	},
 	{
 	    "name": "vehicles",
@@ -75,21 +121,46 @@ var roadBaseAIParams = {
     ]
 };
 
-var cmMessage = new Buffer(
-    'Assembly-CSharp/CitizenManager/call/CreateCitizen?params=' +
-	JSON.stringify(citizenManagerParams)
+var smMessage = new Buffer(
+    'Assembly-CSharp/SimulationManager/fields/m_currentFrameIndex'
 );
 
-var rbaiMessage = new Buffer(
-    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
-	JSON.stringify(roadBaseAIParams)
-);
 
-//var message = cmMessage;
-var message = rbaiMessage;
+var finalRcvFunc = function(msg) {
+    var obj = JSON.parse(msg);
+    console.log(JSON.stringify(obj, null, 2));
+    process.exit(0);
+};
 
-if (process.argv[2])
-    message = process.argv[2];
+return send(smMessage, simFrameRecvFunc)
+    .then(() => {
+	rbaip["parameters"][2]["value"] = simFrame;
 
-client.send(message, 0, message.length, 11000, 'localhost', (err) => {
-});
+	var cmMessage = new Buffer(
+	    'Assembly-CSharp/CitizenManager/call/CreateCitizen?params=' +
+		JSON.stringify(cmp)
+	);
+
+	var rbaiMessage = new Buffer(
+	    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
+		JSON.stringify(rbaip)
+	);
+
+	var nmMessage = new Buffer(
+	    'Assembly-CSharp/NetManager/call/GetSegment?params=' +
+		JSON.stringify(nmp)
+	);
+
+	//var message = cmMessage;
+	//var message = rbaiMessage;
+	var message = nmMessage;
+
+	if (process.argv[2])
+	    message = process.argv[2];
+
+	return send(message, finalRcvFunc);
+    })
+    .catch((err) => {
+	console.log(err);
+	process.exit(1);
+    });

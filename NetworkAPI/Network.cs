@@ -46,12 +46,15 @@ namespace NetworkAPI
             string[] splits = command.Split(new char[] { '?' }, 2);
             string[] commands = splits[0].Trim('/').Split('/');
             string paramData = "{}";
+            Dictionary<string, object> inputParams = new Dictionary<string, object>();
             if (splits.Length > 1)
             {
                 string[] d = splits[1].Split(new char[] { '=' }, 2);
                 if (d.Length == 2)
                     paramData = d[1];
             }
+            inputParams = serializer.DeserializeObject(paramData) as Dictionary<string, object>;
+
             if (commands.Length > 0)
             {
                 string root = commands[0];
@@ -66,24 +69,24 @@ namespace NetworkAPI
                             if (type == "call")
                             {
                                 string method = commands[3];
-                                return CallObjectMethod(root, obj, method, paramData);
+                                return CallObjectMethod(root, obj, method, inputParams);
                             }
-                            return GetObjectProperty(root, obj, type, commands[3]);
+                            return GetObjectProperty(root, obj, type, commands[3], inputParams);
                         }
                         if (type == "call")
                         {
                             return "Error: You must provide method name and arguments!";
                         }
-                        return GetObjectProperties(root, obj, type);
+                        return GetObjectProperties(root, obj, type, inputParams);
                     }
-                    return GetObjectTypes(root, obj);
+                    return GetObjectTypes(root, obj, inputParams);
                 }
-                return GetAssemblyTypes(root);
+                return GetAssemblyTypes(root, inputParams);
             }
             return new List<string> { "Assembly-CSharp", "ICities", "ColossalManaged" };
         }
 
-        public List<string> GetAssemblyTypes(string assemblyName)
+        public List<string> GetAssemblyTypes(string assemblyName, Dictionary<string, object> inputParams)
         {
             List<string> types = new List<string>();
             Assembly assembly = Assembly.Load(assemblyName);
@@ -91,12 +94,12 @@ namespace NetworkAPI
             return types;
         }
 
-        public List<string> GetObjectTypes(string assemblyName, string managername)
+        public List<string> GetObjectTypes(string assemblyName, string managername, Dictionary<string, object> inputParams)
         {
             return new List<string> { "members", "methods", "properties", "fields", "events", "nestedTypes" };
         }
 
-        public List<string> GetObjectProperties(string assemblyName, string objName, string type)
+        public List<string> GetObjectProperties(string assemblyName, string objName, string type, Dictionary<string, object> inputParams)
         {
             List<string> properties = new List<string>();
             try
@@ -157,17 +160,22 @@ namespace NetworkAPI
             return instanceMethodInfo.Invoke(null, null);
         }
 
-        public object GetPropertyValue(string assemblyName, string objName, string name)
+        public object GetPropertyValue(string assemblyName, string objName, string name, Dictionary<string, object> inputParams)
         {
             object retObj;
             object manager = GetInstance(assemblyName, objName);
             Type t = GetAssemblyType(assemblyName, objName);
             MethodInfo mi = t.GetProperty(name).GetGetMethod();
             retObj = mi.Invoke(manager, null);
+            if (inputParams.ContainsKey("index"))
+            {
+                int index = (int)inputParams["index"];
+                retObj = ((Array)retObj).GetValue(index);
+            }
             return retObj;
         }
 
-        public object GetObjectMethod(string assemblyName, string objName, string methodname)
+        public object GetObjectMethod(string assemblyName, string objName, string methodname, Dictionary<string, object> inputParams)
         {
             Type t = GetAssemblyType(assemblyName, objName);
             MemberInfo[] m;
@@ -199,17 +207,17 @@ namespace NetworkAPI
             return parameters;
         }
 
-        public object GetObjectProperty(string assemblyName, string objName, string type, string propertyname)
+        public object GetObjectProperty(string assemblyName, string objName, string type, string propertyname, Dictionary<string, object> inputParams)
         {
             try
             {
                 if (type == "properties")
                 {
-                    return GetPropertyValue(assemblyName, objName, propertyname);
+                    return GetPropertyValue(assemblyName, objName, propertyname, inputParams);
                 }
                 else if (type == "methods")
                 {
-                    return GetObjectMethod(assemblyName, objName, propertyname);
+                    return GetObjectMethod(assemblyName, objName, propertyname, inputParams);
                 }
                 else if (type == "members")
                 {
@@ -225,11 +233,11 @@ namespace NetworkAPI
                         }
                         if (p.MemberType == MemberTypes.Method)
                         {
-                            retDict.Add(GetObjectMethod(assemblyName, objName, p.Name));
+                            retDict.Add(GetObjectMethod(assemblyName, objName, p.Name, inputParams));
                         }
                         if (p.MemberType == MemberTypes.Property)
                         {
-                            retDict.Add(GetPropertyValue(assemblyName, objName, propertyname));
+                            retDict.Add(GetPropertyValue(assemblyName, objName, propertyname, inputParams));
                         }
                     }
                     return retDict;
@@ -258,10 +266,9 @@ namespace NetworkAPI
             return "Unhandled method!";
         }
 
-        public object CallObjectMethod(string assemblyName, string objName, string methodname, string paramdata)
+        public object CallObjectMethod(string assemblyName, string objName, string methodname, Dictionary<string, object> inputParams)
         {
             List<Dictionary<string, string>> paramDefs = new List<Dictionary<string, string>>();
-            Dictionary<string, object> inputParams = new Dictionary<string, object>();
 
             Type t = GetAssemblyType(assemblyName, objName);
             MethodInfo mi = t.GetMethod(methodname);
@@ -291,8 +298,7 @@ namespace NetworkAPI
 
             try
             {
-                paramDefs = GetObjectMethod(assemblyName, objName, methodname) as List<Dictionary<string, string>>;
-                inputParams = serializer.DeserializeObject(paramdata) as Dictionary<string, object>;
+                paramDefs = GetObjectMethod(assemblyName, objName, methodname, null) as List<Dictionary<string, string>>;
                 if (inputParams.ContainsKey("useInstance") && (bool)inputParams["useInstance"])
                 {
                     instance = GetInstance(assemblyName, objName);
@@ -318,6 +324,29 @@ namespace NetworkAPI
             }
         }
 
+        public object ResolveParameter(Dictionary<string, object> param)
+        {
+            object parameter = null;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                (string)param["name"] + ": " +(string)param["type"]);
+
+            param["type"] = ((string)param["type"]).Trim('&');
+            if (param.ContainsKey("assembly"))
+            {
+                parameter = Activator.CreateInstance((string)param["assembly"], (string)param["type"]);
+            }
+            else
+            {
+                Type t = Type.GetType((string)param["type"]);
+                if (t != null)
+                    parameter = Activator.CreateInstance(t);
+            }
+            if (parameter != null)
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                    (string)param["type"] + ": " + serializer.Serialize(parameter));
+            return parameter;
+        }
+
         public List<object> ConvertParameters(List<Dictionary<string, string>> defs, Dictionary<string, object> parameters)
         {
             List<object> parameterObjects = new List<object>();
@@ -325,15 +354,8 @@ namespace NetworkAPI
             for (int i=0; i < paramArray.Length; i++)
             {
                 Dictionary<string, object> p = (Dictionary<string, object>)paramArray.GetValue(i);
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                    (string)p["name"] + ": " +(string)p["type"]);
-                Type t = Type.GetType((string)p["type"]);
-                /*
-                object o = Activator.CreateInstance(t);
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                (string)p["type"] + ": " + serializer.Serialize(o));
-                parameterObjects.Add(o);
-                */
+                object o = ResolveParameter(p);
+                //parameterObjects.Add(o);
             }
             return parameterObjects;
         }
