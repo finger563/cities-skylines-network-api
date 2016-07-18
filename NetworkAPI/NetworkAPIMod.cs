@@ -58,20 +58,20 @@ namespace NetworkAPI
                     "Got connection from: " + sender.ToString() + ", message: " +
                     command);
 
-                string welcome = "This should be empty!";
+                string response = "";
                 try
                 {
-                    welcome = serializer.Serialize(networkAPI.ParseCommand(command));
+                    response = serializer.Serialize(networkAPI.HandleRequest(command));
                 }
                 catch (Exception e)
                 {
                     DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
                         e.Message);
                     Debug.Log(e.Message);
-                    welcome = serializer.Serialize(e.Message);
+                    response = serializer.Serialize(e.Message);
                 }
                 
-                data = Encoding.ASCII.GetBytes(welcome);
+                data = Encoding.ASCII.GetBytes(response);
                 listener.Send(data, data.Length, sender);
             }
         }

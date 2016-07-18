@@ -50,6 +50,8 @@ namespace NetworkAPI
                 {
                     var objDict = objDictArray.GetValue(i) as Dictionary<string, object>;
                     retObj = GetObject(objDict, retObj);
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                        "Got object: " + (string)objDict["name"] + ": " + retObj.ToString());
                 }
             }
             else
@@ -77,6 +79,10 @@ namespace NetworkAPI
             // always required to have 'name', 'type'
             string objName = objDict["name"] as string;
             string typeName = typeName = objDict["type"] as string;
+
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                "Getting " + objName + " of type " + typeName + " from " + ctx);
+
             // optionally may have 'assembly'
             string assemblyName = "";
             if (objDict.ContainsKey("assembly"))
@@ -103,25 +109,33 @@ namespace NetworkAPI
             }
             else if (ctx != null)
             {
-                Type contextType = ctx.GetType();
-                if (objDict.ContainsKey("isStatic") && (bool)objDict["isStatic"])
+                Type contextType = ctx as Type;
+                if (contextType != null)
+                {
                     ctx = null;
+                }
+                else
+                {
+                    contextType = ctx.GetType();
+                    if (objDict.ContainsKey("isStatic") && (bool)objDict["isStatic"])
+                        ctx = null;
+                }
 
                 if (typeName == "method")
                 {
-                    MethodInfo mi = contextType.GetMethod(objName);
-                    retObj = mi.Invoke(ctx, parameters.ToArray());
+                    MethodInfo mi = (MethodInfo)contextType.GetMember(objName)[0];
+                    retObj = mi.Invoke(ctx, null); // parameters
                 }
                 else if (typeName == "field")
                 {
-                    FieldInfo fi = contextType.GetField(objName);
+                    FieldInfo fi = (FieldInfo)contextType.GetMember(objName)[0];
                     retObj = fi.GetValue(ctx);
                 }
                 else if (typeName == "property")
                 {
-                    PropertyInfo pi = contextType.GetProperty(objName);
-                    MethodInfo mi = pi.GetGetMethod();
-                    retObj = mi.Invoke(ctx, parameters.ToArray());
+                    PropertyInfo pi = (PropertyInfo)contextType.GetMember(objName)[0];
+                    MethodInfo mi = pi.GetAccessors()[0];
+                    retObj = mi.Invoke(ctx, null); // parameters
                 }
                 else if (typeName == "member")
                 {
@@ -131,14 +145,14 @@ namespace NetworkAPI
                         if (mi.MemberType == MemberTypes.Method)
                         {
                             MethodInfo methodInfo = (MethodInfo)mi;
-                            retObj = methodInfo.Invoke(ctx, parameters.ToArray());
+                            retObj = methodInfo.Invoke(ctx, null); // parameters
                             break;
                         }
                         else if (mi.MemberType == MemberTypes.Property)
                         {
                             PropertyInfo pi = (PropertyInfo)mi;
-                            MethodInfo methodInfo = pi.GetGetMethod();
-                            retObj = methodInfo.Invoke(ctx, parameters.ToArray());
+                            MethodInfo methodInfo = pi.GetAccessors()[0];
+                            retObj = methodInfo.Invoke(ctx, null); // parameters
                             break;
                         }
                         else if (mi.MemberType == MemberTypes.Field)

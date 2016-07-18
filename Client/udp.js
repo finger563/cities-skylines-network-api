@@ -83,78 +83,105 @@ var cmp = {
 };
 
 var newTest = {
-    "name": "RoadBaseAI",
-    "type": "class",
-    "assembly": "Assembly-CSharp",
-    "then": {
-	"name": "GetTrafficLightState",
-	"type": "method",
-	"parameters": [
-	    {
-		"name": "nodeId",
-		"type": "System.UInt32",
-		"value": 154
-	    },
-	    {
-		"name": "segment",
-		"type": "NetSegment&",
-		"value": {
-		    "name": "NetManager",
-		    "type": "class",
-		    "assembly": "Assembly-CSharp",
-		    "then": {
-			"name": "instance",
-			"type": "member",
+    "get": [
+	{
+	    "name": "RoadBaseAI",
+	    "type": "class",
+	    "assembly": "Assembly-CSharp"
+	},
+	{
+	    "name": "GetTrafficLightState",
+	    "type": "method",
+	    "parameters": [
+		{
+		    "name": "nodeId",
+		    "type": "System.UInt32",
+			"value": 154
+		},
+		{
+		    "name": "segment",
+		    "type": "NetSegment&",
+		    "value": {
+			"name": "NetManager",
+			"type": "class",
+			"assembly": "Assembly-CSharp",
 			"then": {
-			    "name": "m_segments",
+			    "name": "instance",
+			    "type": "member",
 			    "then": {
-				"name": "m_buffer"
-				"index": 0
+				"name": "m_segments",
+				"then": {
+				    "name": "m_buffer",
+				    "index": 0
+				}
 			    }
 			}
 		    }
-		}
-	    },
-	    {
-		"name": "simulation frame",
-		"type": "System.UInt32",
-		"value": {
-		    "name": "SimulationManager",
-		    "type": "class",
-		    "assembly": "Assembly-CSharp",
-		    "then": {
-			"name": "instance",
-			"type": "member",
+		},
+		{
+		    "name": "simulation frame",
+		    "type": "System.UInt32",
+		    "value": {
+			"name": "SimulationManager",
+			"type": "class",
+			"assembly": "Assembly-CSharp",
 			"then": {
-			    "name": "m_currentFrameIndex"
+			    "name": "instance",
+			    "type": "member",
+			    "then": {
+				"name": "m_currentFrameIndex"
+			    }
 			}
 		    }
+		},
+		{
+		    "name": "vehicle light state",
+		    "type": "RoadBaseAI+TrafficLightState",
+		    "value": {
+		    }
+		},
+		{
+		    "name": "pedestrian light state",
+		    "type": "RoadBaseAI+TrafficLightState",
+		    "value": {
+		    }
+		},
+		{
+		    "name": "vehicles",
+		    "type": "System.Boolean",
+		    "value": false
+		},
+		{
+		    "name": "pedestrians",
+		    "type": "System.Boolean",
+		    "value": false
 		}
-	    },
-	    {
-		"name": "vehicle light state",
-		"type": "RoadBaseAI+TrafficLightState",
-		"value": {
-		}
-	    },
-	    {
-		"name": "pedestrian light state",
-		"type": "RoadBaseAI+TrafficLightState",
-		"value": {
-		}
-	    },
-	    {
-		"name": "vehicles",
-		"type": "System.Boolean",
-		"value": false
-	    },
-	    {
-		"name": "pedestrians",
-		"type": "System.Boolean",
-		"value": false
-	    }
-	]
-    }
+	    ]
+	}
+    ]
+};
+
+newTest = {
+    "get": [
+	{
+	    "name": "NetManager",
+	    "type": "class",
+	    "assembly": "Assembly-CSharp"
+	},
+	{
+	    "name": "instance",
+	    "type": "property"
+	},
+	{
+	    "name": "m_segments",
+	    "type": "member"
+	},
+	{
+	    "name": "m_buffer",
+	    "type": "member",
+	    "index": 0
+	}
+    ]
 };
 
 var rbaip = {
@@ -200,6 +227,9 @@ var smMessage = new Buffer(
     'Assembly-CSharp/SimulationManager/fields/m_currentFrameIndex'
 );
 
+var newTestMessage = new Buffer(
+    JSON.stringify(newTest)
+);
 
 var finalRcvFunc = function(msg) {
     var obj = JSON.parse(msg);
@@ -207,6 +237,8 @@ var finalRcvFunc = function(msg) {
     process.exit(0);
 };
 
+return send(newTestMessage, finalRcvFunc);
+/*
 return send(smMessage, simFrameRecvFunc)
     .then(() => {
 	rbaip["parameters"][2]["value"] = simFrame;
@@ -239,3 +271,4 @@ return send(smMessage, simFrameRecvFunc)
 	console.log(err);
 	process.exit(1);
     });
+*/
