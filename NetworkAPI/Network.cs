@@ -66,12 +66,14 @@ namespace NetworkAPI
          *  - assembly
          *  - index
          *  - parameters
+         *  - isStatic
          *  Where parameters is a list of objects (of arbitrary depth) 
          *  ctx is an object provided as the context
          */
         public object GetObject(Dictionary<string, object> objDict, object ctx)
         {
             object retObj = null;
+
             // always required to have 'name', 'type'
             string objName = objDict["name"] as string;
             string typeName = typeName = objDict["type"] as string;
@@ -80,28 +82,42 @@ namespace NetworkAPI
             if (objDict.ContainsKey("assembly"))
                 assemblyName = objDict["assembly"] as string;
 
+            // get parameters (if required)
+            List<object> parameters = new List<object>();
+
+            // finalize object
+
             // get type from assembly or scope
             if (assemblyName.Length > 0)
             {
-                Type t = GetAssemblyType(assemblyName, typeName);
+                Type t = GetAssemblyType(assemblyName, objName);
+                retObj = t;
             }
             else if (ctx != null)
             {
+                Type contextType = ctx.GetType();
+                if (objDict.ContainsKey("isStatic") && (bool)objDict["isStatic"])
+                    ctx = null;
+
                 if (typeName == "method")
                 {
-                    MethodInfo mi = ctx.GetType().GetMethod(objName);
+                    MethodInfo mi = contextType.GetMethod(objName);
+                    retObj = mi.Invoke(ctx, parameters.ToArray());
                 }
                 else if (typeName == "field")
                 {
-                    FieldInfo fi = ctx.GetType().GetField(objName);
+                    FieldInfo fi = contextType.GetField(objName);
+                    retObj = fi.GetValue(ctx);
                 }
                 else if (typeName == "property")
                 {
-                    PropertyInfo pi = ctx.GetType().GetProperty(objName);
+                    PropertyInfo pi = contextType.GetProperty(objName);
+                    MethodInfo mi = pi.GetGetMethod();
+                    retObj = mi.Invoke(ctx, null);
                 }
                 else if (typeName == "member")
                 {
-                    MemberInfo[] mia = ctx.GetType().GetMember(objName);
+                    MemberInfo[] mia = contextType.GetMember(objName);
                     foreach (var mi in mia)
                     {
                         if (mi.MemberType == MemberTypes.Method)
@@ -120,8 +136,6 @@ namespace NetworkAPI
             {
                 throw new Exception("");
             }
-            // get parameters (if required)
-            // finalize object
             return retObj;
         }
 
