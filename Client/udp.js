@@ -4,12 +4,6 @@ const client = dgram.createSocket('udp4');
 
 var simFrame = 0;
 
-var simFrameRecvFunc = function(msg) {
-    var obj = JSON.parse(msg);
-    simFrame = +obj;
-    console.log(simFrame);
-};
-
 var send = function(msg, cb) {
     var deferred = Q.defer();
 
@@ -82,7 +76,7 @@ var cmp = {
     ]
 };
 
-var newTest = {
+var methodTest = {
     "get": [
 	{
 	    "name": "RoadBaseAI",
@@ -168,7 +162,7 @@ var newTest = {
     ]
 };
 
-newTest = {
+var frameTest = {
     "get": [
 	{
 	    "name": "SimulationManager",
@@ -185,8 +179,8 @@ newTest = {
 	}
     ]
 };
-/*
-newTest = {
+
+var bufferTest = {
     "get": [
 	{
 	    "name": "NetManager",
@@ -208,7 +202,7 @@ newTest = {
 	}
     ]
 };
-*/
+
 var rbaip = {
     "useInstance": false,
     "parameters": [
@@ -248,9 +242,14 @@ var rbaip = {
     ]
 };
 
-var smMessage = new Buffer(
-    'Assembly-CSharp/SimulationManager/fields/m_currentFrameIndex'
-);
+var newTest = frameTest;
+
+if (process.argv[2]) {
+    if (process.argv[2] == "buffer")
+	newTest = bufferTest;
+    else if (process.argv[2] == "method")
+	newTest = methodTest;
+}
 
 var newTestMessage = new Buffer(
     JSON.stringify(newTest)
@@ -263,37 +262,3 @@ var finalRcvFunc = function(msg) {
 };
 
 return send(newTestMessage, finalRcvFunc);
-/*
-return send(smMessage, simFrameRecvFunc)
-    .then(() => {
-	rbaip["parameters"][2]["value"] = simFrame;
-
-	var cmMessage = new Buffer(
-	    'Assembly-CSharp/CitizenManager/call/CreateCitizen?params=' +
-		JSON.stringify(cmp)
-	);
-
-	var rbaiMessage = new Buffer(
-	    'Assembly-CSharp/RoadBaseAI/call/SetTrafficLightState?params=' +
-		JSON.stringify(rbaip)
-	);
-
-	var nmMessage = new Buffer(
-	    'Assembly-CSharp/NetManager/call/GetSegment?params=' +
-		JSON.stringify(nmp)
-	);
-
-	//var message = cmMessage;
-	//var message = rbaiMessage;
-	var message = nmMessage;
-
-	if (process.argv[2])
-	    message = process.argv[2];
-
-	return send(message, finalRcvFunc);
-    })
-    .catch((err) => {
-	console.log(err);
-	process.exit(1);
-    });
-*/

@@ -50,8 +50,10 @@ namespace NetworkAPI
                 {
                     var objDict = objDictArray.GetValue(i) as Dictionary<string, object>;
                     retObj = GetObject(objDict, retObj);
+                    /*
                     DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                         "Got object: " + (string)objDict["name"] + ": " + retObj.ToString());
+                        */
                 }
             }
             else
@@ -81,8 +83,10 @@ namespace NetworkAPI
             string objName = objDict["name"] as string;
             string typeName = typeName = objDict["type"] as string;
 
+            /*
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "Getting " + objName + " of type " + typeName + " from " + ctx);
+                */
 
             // optionally may have 'assembly'
             string assemblyName = "";

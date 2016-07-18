@@ -55,8 +55,7 @@ namespace NetworkAPI
                 string command = Encoding.ASCII.GetString(data, 0, data.Length);
 
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                    "Got connection from: " + sender.ToString() + ", message: " +
-                    command);
+                    "Got connection from: " + sender.ToString());
 
                 string response = "";
                 try
