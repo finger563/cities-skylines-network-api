@@ -84,8 +84,16 @@ namespace NetworkAPI
 
             // get parameters (if required)
             List<object> parameters = new List<object>();
-
-            // finalize object
+            if (objDict.ContainsKey("parameters"))
+            {
+                var paramDictArray = objDict["parameters"] as Array;
+                for (int i=0; i< paramDictArray.Length; i++)
+                {
+                    var paramDict = paramDictArray.GetValue(i) as Dictionary<string, object>;
+                    object param = GetObject(paramDict, null);
+                    parameters.Add(param);
+                }
+            }
 
             // get type from assembly or scope
             if (assemblyName.Length > 0)
@@ -113,7 +121,7 @@ namespace NetworkAPI
                 {
                     PropertyInfo pi = contextType.GetProperty(objName);
                     MethodInfo mi = pi.GetGetMethod();
-                    retObj = mi.Invoke(ctx, null);
+                    retObj = mi.Invoke(ctx, parameters.ToArray());
                 }
                 else if (typeName == "member")
                 {
@@ -122,20 +130,38 @@ namespace NetworkAPI
                     {
                         if (mi.MemberType == MemberTypes.Method)
                         {
+                            MethodInfo methodInfo = (MethodInfo)mi;
+                            retObj = methodInfo.Invoke(ctx, parameters.ToArray());
+                            break;
                         }
                         else if (mi.MemberType == MemberTypes.Property)
                         {
+                            PropertyInfo pi = (PropertyInfo)mi;
+                            MethodInfo methodInfo = pi.GetGetMethod();
+                            retObj = methodInfo.Invoke(ctx, parameters.ToArray());
+                            break;
                         }
                         else if (mi.MemberType == MemberTypes.Field)
                         {
+                            FieldInfo fi = (FieldInfo)mi;
+                            retObj = fi.GetValue(ctx);
+                            break;
                         }
                     }
                 }
             }
             else
             {
-                throw new Exception("");
+                throw new Exception("Must provide assembly, type or context!");
             }
+
+            // finalize object, e.g. using the 'index' parameter
+            if (objDict.ContainsKey("index"))
+            {
+                var arrObj = retObj as Array;
+                retObj = arrObj.GetValue((int)objDict["index"]);
+            }
+
             return retObj;
         }
 
