@@ -96,43 +96,50 @@ var newTest = {
 		{
 		    "name": "nodeId",
 		    "type": "System.UInt32",
-			"value": 154
+		    "value": 154
 		},
 		{
 		    "name": "segment",
 		    "type": "NetSegment&",
-		    "value": {
-			"name": "NetManager",
-			"type": "class",
-			"assembly": "Assembly-CSharp",
-			"then": {
+		    "value": [
+			{
+			    "name": "NetManager",
+			    "type": "class",
+			    "assembly": "Assembly-CSharp"
+			},
+			{
 			    "name": "instance",
+			    "type": "property"
+			},
+			{
+			    "name": "m_segments",
+			    "type": "member"
+			},
+			{
+			    "name": "m_buffer",
 			    "type": "member",
-			    "then": {
-				"name": "m_segments",
-				"then": {
-				    "name": "m_buffer",
-				    "index": 0
-				}
-			    }
+			    "index": 0
 			}
-		    }
+		    ]
 		},
 		{
 		    "name": "simulation frame",
 		    "type": "System.UInt32",
-		    "value": {
-			"name": "SimulationManager",
-			"type": "class",
-			"assembly": "Assembly-CSharp",
-			"then": {
+		    "value": [
+			{
+			    "name": "SimulationManager",
+			    "type": "class",
+			    "assembly": "Assembly-CSharp"
+			},
+			{
 			    "name": "instance",
-			    "type": "member",
-			    "then": {
-				"name": "m_currentFrameIndex"
-			    }
+			    "type": "property"
+			},
+			{
+			    "name": "m_currentFrameIndex",
+			    "type": "member"
 			}
-		    }
+		    ]
 		},
 		{
 		    "name": "vehicle light state",
@@ -164,6 +171,24 @@ var newTest = {
 newTest = {
     "get": [
 	{
+	    "name": "SimulationManager",
+	    "type": "class",
+	    "assembly": "Assembly-CSharp"
+	},
+	{
+	    "name": "instance",
+	    "type": "property"
+	},
+	{
+	    "name": "m_currentFrameIndex",
+	    "type": "member"
+	}
+    ]
+};
+/*
+newTest = {
+    "get": [
+	{
 	    "name": "NetManager",
 	    "type": "class",
 	    "assembly": "Assembly-CSharp"
@@ -183,7 +208,7 @@ newTest = {
 	}
     ]
 };
-
+*/
 var rbaip = {
     "useInstance": false,
     "parameters": [

@@ -69,7 +69,8 @@ namespace NetworkAPI
          *  - index
          *  - parameters
          *  - isStatic
-         *  Where parameters is a list of objects (of arbitrary depth) 
+         *  - value
+         *  Where parameters is a list of object lists (of arbitrary depth) 
          *  ctx is an object provided as the context
          */
         public object GetObject(Dictionary<string, object> objDict, object ctx)
@@ -92,11 +93,16 @@ namespace NetworkAPI
             List<object> parameters = new List<object>();
             if (objDict.ContainsKey("parameters"))
             {
-                var paramDictArray = objDict["parameters"] as Array;
-                for (int i=0; i< paramDictArray.Length; i++)
+                var paramArrayDictArray = objDict["parameters"] as Array;
+                for (int i=0; i< paramArrayDictArray.Length; i++)
                 {
-                    var paramDict = paramDictArray.GetValue(i) as Dictionary<string, object>;
-                    object param = GetObject(paramDict, null);
+                    var paramArrayDict = paramArrayDictArray.GetValue(i) as Array;
+                    object param = null;
+                    for (int j=0; j< paramArrayDict.Length; j++)
+                    {
+                        var paramDict = paramArrayDict.GetValue(i) as Dictionary<string, object>;
+                        param = GetObject(paramDict, param);
+                    }
                     parameters.Add(param);
                 }
             }
@@ -166,7 +172,8 @@ namespace NetworkAPI
             }
             else
             {
-                throw new Exception("Must provide assembly, type or context!");
+                Type t = Type.GetType(typeName);
+                retObj = t;
             }
 
             // finalize object, e.g. using the 'index' parameter
@@ -174,6 +181,12 @@ namespace NetworkAPI
             {
                 var arrObj = retObj as Array;
                 retObj = arrObj.GetValue((int)objDict["index"]);
+            }
+
+            // set the value of the object if it exists
+            if (objDict.ContainsKey("value"))
+            {
+                retObj = objDict["value"];
             }
 
             return retObj;
