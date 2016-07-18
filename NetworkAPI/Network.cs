@@ -28,6 +28,103 @@ namespace NetworkAPI
             serializer = new JavaScriptSerializer();
         }
 
+        /* Takes a json-formatted string containing:
+         *  {
+         *    "get": [
+         *      {
+         *      },
+         *    ]
+         *  }
+         *  Where "get" contains an array of object data to be 
+         *  called sequentially within heirarchical scope
+         *  Object data is formatted according to GetObject(...)
+         */
+        public object HandleRequest(string jsonRequest)
+        {
+            object retObj = null;
+            var jsonDict = serializer.DeserializeObject(jsonRequest) as Dictionary<string, object>;
+            if (jsonDict.ContainsKey("get"))
+            {
+                var objDictArray = jsonDict["get"] as Array;
+                for (int i = 0; i < objDictArray.Length; i++)
+                {
+                    var objDict = objDictArray.GetValue(i) as Dictionary<string, object>;
+                    retObj = GetObject(objDict, retObj);
+                }
+            }
+            else
+            {
+                throw new Exception("Format of the JSON must be: { \"get\": [ {}, ... ] }");
+            }
+            return retObj;
+        }
+
+        /* Takes a Dictionary<string, object> which must contain:
+         *  - name
+         *  - type (object, method, ...)
+         *  and may contain:
+         *  - assembly
+         *  - index
+         *  - parameters
+         *  Where parameters is a list of objects (of arbitrary depth) 
+         *  ctx is an object provided as the context
+         */
+        public object GetObject(Dictionary<string, object> objDict, object ctx)
+        {
+            object retObj = null;
+            // always required to have 'name', 'type'
+            string objName = objDict["name"] as string;
+            string typeName = typeName = objDict["type"] as string;
+            // optionally may have 'assembly'
+            string assemblyName = "";
+            if (objDict.ContainsKey("assembly"))
+                assemblyName = objDict["assembly"] as string;
+
+            // get type from assembly or scope
+            if (assemblyName.Length > 0)
+            {
+                Type t = GetAssemblyType(assemblyName, typeName);
+            }
+            else if (ctx != null)
+            {
+                if (typeName == "method")
+                {
+                    MethodInfo mi = ctx.GetType().GetMethod(objName);
+                }
+                else if (typeName == "field")
+                {
+                    FieldInfo fi = ctx.GetType().GetField(objName);
+                }
+                else if (typeName == "property")
+                {
+                    PropertyInfo pi = ctx.GetType().GetProperty(objName);
+                }
+                else if (typeName == "member")
+                {
+                    MemberInfo[] mia = ctx.GetType().GetMember(objName);
+                    foreach (var mi in mia)
+                    {
+                        if (mi.MemberType == MemberTypes.Method)
+                        {
+                        }
+                        else if (mi.MemberType == MemberTypes.Property)
+                        {
+                        }
+                        else if (mi.MemberType == MemberTypes.Field)
+                        {
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("");
+            }
+            // get parameters (if required)
+            // finalize object
+            return retObj;
+        }
+
         /* 
          * Handles commands of the following forms:
          * 
