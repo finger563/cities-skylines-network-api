@@ -58,6 +58,7 @@ namespace NetworkAPI
         {
             object retObj = null;
 
+            // get required/dependent context now (recursively)
             object ctx = null;
             if (obj.Dependency != null)
             {
@@ -66,9 +67,12 @@ namespace NetworkAPI
 
             /*
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
-                */
+            "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
+            */
 
+            // get parameter data now
+            
+            // get object data now
             if (obj.Type == ObjectType.CLASS)
             {
                 Type t = GetAssemblyType(obj.Assembly, obj.Name);
