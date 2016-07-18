@@ -8,6 +8,8 @@ using System.Collections.Generic;
 
 using System.Threading;
 
+using Newtonsoft.Json;
+
 using System.Linq;
 
 using ICities;
@@ -38,7 +40,6 @@ namespace NetworkAPI
 
         public void ListenerThreadFunc()
         {
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
             while (true)
             {
                 byte[] data = new byte[1024];
@@ -60,14 +61,14 @@ namespace NetworkAPI
                 string response = "";
                 try
                 {
-                    response = serializer.Serialize(networkAPI.HandleRequest(command));
+                    response = JsonConvert.SerializeObject(networkAPI.HandleRequest(command));
                 }
                 catch (Exception e)
                 {
                     DebugOutputPanel.AddMessage(PluginManager.MessageType.Error,
                         e.Message);
                     Debug.Log(e.Message);
-                    response = serializer.Serialize(e.Message);
+                    response = JsonConvert.SerializeObject(e.Message);
                 }
                 
                 data = Encoding.ASCII.GetBytes(response);

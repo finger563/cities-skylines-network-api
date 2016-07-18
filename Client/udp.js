@@ -162,24 +162,6 @@ var methodTest = {
     ]
 };
 
-var frameTest = {
-    "get": [
-	{
-	    "name": "SimulationManager",
-	    "type": "class",
-	    "assembly": "Assembly-CSharp"
-	},
-	{
-	    "name": "instance",
-	    "type": "property"
-	},
-	{
-	    "name": "m_currentFrameIndex",
-	    "type": "member"
-	}
-    ]
-};
-
 var bufferTest = {
     "get": [
 	{
@@ -203,44 +185,52 @@ var bufferTest = {
     ]
 };
 
-var rbaip = {
-    "useInstance": false,
-    "parameters": [
+var intTest = {
+    "get": [
 	{
-	    "name": "nodeID",
-	    "type": "System.UInt16",
-	},
-	{
-	    "name": "segmentData",
-	    "type": "NetSegment&",
-	    "assembly": "Assembly-CSharp"
-	},
-	{
-	    "name": "frame",
+	    "name": "testInt",
 	    "type": "System.UInt32",
-	},
-	{
-	    "name": "vehicleLightState",
-	    "type": "RoadBaseAI+TrafficLightState",
-	    "assembly": "Assembly-CSharp"
-	},
-	{
-	    "name": "pedestrianLightState",
-	    "type": "RoadBaseAI+TrafficLightState",
-	    "assembly": "Assembly-CSharp"
-	},
-	{
-	    "name": "vehicles",
-	    "type": "System.Boolean",
-	    "value": false
-	},
-	{
-	    "name": "pedestrians",
-	    "type": "System.Boolean",
-	    "value": false
+	    "value": {
+		"type": "Integer",
+		"data": 1542
+	    }
 	}
     ]
 };
+
+var enumTest = {
+    "get": [
+	{
+	    "name": "RoadBaseAI+TrafficLightState",
+	    "type": "RoadBaseAI+TrafficLightState",
+	    "assembly": "Assembly-CSharp",
+	    "value": {
+		"data": 0,
+		"type": "Enum",
+	    }
+	}
+    ]
+};
+
+var frameTest = {
+    'Method': 'GET',
+    'Object': {
+	'Name': 'm_currentFrameIndex',
+	'Type': 'MEMBER',
+	'IsStatic': false,
+	'Dependency': {
+	    'Name': 'instance',
+	    'IsStatic': true,
+	    'Type': 'MEMBER',
+	    'Dependency': {
+		'Assembly': 'Assembly-CSharp',
+		'Name': 'SimulationManager',
+		'Type': 'CLASS'
+	    }
+	}
+    }
+};
+
 
 var newTest = frameTest;
 
@@ -249,6 +239,10 @@ if (process.argv[2]) {
 	newTest = bufferTest;
     else if (process.argv[2] == "method")
 	newTest = methodTest;
+    else if (process.argv[2] == "int")
+	newTest = intTest;
+    else if (process.argv[2] == "enum")
+	newTest = enumTest;
 }
 
 var newTestMessage = new Buffer(
