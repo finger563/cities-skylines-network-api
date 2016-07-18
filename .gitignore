@@ -18,6 +18,8 @@ ExportedObj/
 *.booproj
 *.svd
 
+*node_modules
+
 obj/
 bin/
 .vs/

@@ -3,70 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using System.Runtime.Serialization;
-
-using System.ServiceModel;
-using System.ServiceModel.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace NetworkAPI
 {
-    [DataContract]
-    public class MethodParameter
-    {
-        string type = string.Empty;
-        string name = string.Empty;
-        string value = string.Empty;
+    public enum MethodType {
+        GET, SET, EXECUTE
+    };
 
-        [DataMember]
-        public string Type { get; set; }
-        [DataMember]
-        public string Name { get; set; }
-        [DataMember]
-        public string Value { get; set; }
+    public enum ObjectType {
+        CLASS, MEMBER, PARAMETER, FIELD, PROPERTY, METHOD
+    };
+
+    public class Request
+    {
+        [JsonConverter(typeof(StringEnumConverter))]
+        public MethodType Method { get; set; }
+        public NetworkObject Object { get; set; }
+        public string Data { get; set; }
     }
 
-    [ServiceContract]
-    public interface INetwork
+    public class Response
     {
-        [WebGet(UriTemplate = "/managers/{managername}/call/{methodname}?params={paramdata}",
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract(Name = "testMethod")]
-        string CallManagerMethod(string managername, string methodname, string paramdata);
+        public int Code { get; set; }
+        public string Message { get; set; }
+        public NetworkObject Object { get; set; }
+    }
 
-        [WebGet(UriTemplate = "assemblies", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<string> GetAssemblies();
-
-        [WebGet(UriTemplate = "assemblies/{assemblyName}", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<string> GetAssemblyTypes(string assemblyName);
-
-        [WebGet(UriTemplate = "managers", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<string> GetManagers();
-
-        [WebGet(UriTemplate = "managers/{managername}", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<string> GetManagerTypes(string managername);
-
-        [WebGet(UriTemplate = "managers/{managername}/{type}", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        List<string> GetManagerProperties(string managername, string type);
-
-        [WebGet(UriTemplate = "managers/{managername}/{type}/{propertyname}", 
-            BodyStyle = WebMessageBodyStyle.Bare, 
-            ResponseFormat = WebMessageFormat.Json)]
-        [OperationContract]
-        string GetManagerProperty(string managername, string type, string propertyname);
+    public class NetworkObject
+    {
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ObjectType Type { get; set; }
+        public string Name { get; set; }
+        public NetworkObject Dependency { get; set; }
+        public string Assembly { get; set; }
+        public bool IsStatic { get; set; }
+        public string Value { get; set; }
+        public IList<NetworkObject> Parameters { get; set; }
     }
 }
