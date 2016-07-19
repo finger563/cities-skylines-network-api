@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using System.ComponentModel;
+
 using Newtonsoft.Json;
 
 using System.Reflection;
@@ -133,6 +135,9 @@ namespace NetworkAPI
             }
 
             // set the value of the object if it exists
+            if (obj.Value != null)
+            {
+            }
 
             return retObj;
         }
@@ -140,6 +145,24 @@ namespace NetworkAPI
         public Type GetAssemblyType(string assemblyName, string typeName)
         {
             return Assembly.Load(assemblyName).GetType(typeName);
+        }
+
+        public void SetValueFromString(object target, string propertyName, string propertyValue)
+        {
+            PropertyInfo pi = target.GetType().GetProperty(propertyName);
+            Type t = pi.PropertyType;
+
+            if (t.IsGenericType &&
+                t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            {
+                if (propertyValue == null)
+                {
+                    pi.SetValue(target, null, null);
+                    return;
+                }
+                t = new NullableConverter(pi.PropertyType).UnderlyingType;
+            }
+            pi.SetValue(target, Convert.ChangeType(propertyValue, t), null);
         }
     }
 }
