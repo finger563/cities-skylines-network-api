@@ -76,7 +76,7 @@ var enumTest = {
 	'Name': 'm_currentFrameIndex',
 	'Type': 'MEMBER',
 	'IsStatic': false,
-	'Value': 1,
+	'Value': 'GreenToRed',
 	'ValueType': 'RoadBaseAI+TrafficLightState',
 	'Assembly': 'Assembly-CSharp',
 	'Dependency': {

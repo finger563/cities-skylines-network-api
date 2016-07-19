@@ -151,13 +151,17 @@ namespace NetworkAPI
             // set the value of the object if it exists
             if (obj.Value != null)
             {
+                // need to figure out here how to decide what to do
                 Type t = Type.GetType(obj.ValueType);
                 if (t == null)
                 {
                     t = GetAssemblyType(obj.Assembly, obj.ValueType);
+                    retObj = Enum.Parse(t, obj.Value);  // won't always just be an enum...
                 }
-                retObj = Convert.ChangeType(obj.Value, t);  // need to figure out here how to decide what to do
-                retObj = Enum.Parse(t, obj.Value);
+                else
+                {
+                    retObj = Convert.ChangeType(obj.Value, t);
+                }
             }
 
             return retObj;
