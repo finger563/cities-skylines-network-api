@@ -61,10 +61,27 @@ namespace NetworkAPI
             object retObj = null;
 
             // get required/dependent context now (recursively)
+            Type contextType = null;
             object ctx = null;
             if (obj.Dependency != null)
             {
                 ctx = GetObject(obj.Dependency);
+            }
+            if (ctx != null)
+            {
+                contextType = ctx as Type;
+                if (contextType != null)
+                {
+                    ctx = null;
+                }
+                else
+                {
+                    contextType = ctx.GetType();
+                }
+                if (obj.IsStatic)
+                {
+                    ctx = null;
+                }
             }
 
             /*
@@ -72,8 +89,6 @@ namespace NetworkAPI
             "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
             */
 
-            // get parameter data now
-            
             // get object data now
             if (obj.Type == ObjectType.CLASS)
             {
@@ -82,21 +97,8 @@ namespace NetworkAPI
             }
             else if (obj.Type == ObjectType.MEMBER)
             {
-                if (ctx != null)
+                if (contextType != null)
                 {
-                    Type contextType = ctx as Type;
-                    if (contextType != null)
-                    {
-                        ctx = null;
-                    }
-                    else
-                    {
-                        contextType = ctx.GetType();
-                    }
-                    if (obj.IsStatic)
-                    {
-                        ctx = null;
-                    }
                     MemberInfo[] mia = contextType.GetMember(obj.Name);
                     foreach (var mi in mia)
                     {
@@ -122,13 +124,25 @@ namespace NetworkAPI
                     }
                 }
             }
-            else if (obj.Type == ObjectType.PARAMETER)
+            else if (obj.Type == ObjectType.PARAMETER) // do we need this type?
             {
             }
             else if (obj.Type == ObjectType.METHOD)
             {
-                // get parameters (if required)
-                List<object> parameters = new List<object>();
+                if (contextType != null)
+                {
+                    // get parameters (if they exist)
+                    List<object> parameters = new List<object>();
+                    for (int i = 0; i < obj.Parameters.Count; i++)
+                    {
+                        object param = GetObject(obj.Parameters.ElementAt(i));
+                        parameters.Add(param);
+                    }
+                    // call the method here
+                    MethodInfo mi = contextType.GetMethod(obj.Name);
+                    MethodInfo methodInfo = (MethodInfo)mi;
+                    retObj = methodInfo.Invoke(ctx, parameters.ToArray()); // parameters
+                }
             }
             else
             {
@@ -137,6 +151,13 @@ namespace NetworkAPI
             // set the value of the object if it exists
             if (obj.Value != null)
             {
+                Type t = Type.GetType(obj.ValueType);
+                if (t == null)
+                {
+                    t = GetAssemblyType(obj.Assembly, obj.ValueType);
+                }
+                retObj = Convert.ChangeType(obj.Value, t);  // need to figure out here how to decide what to do
+                retObj = Enum.Parse(t, obj.Value);
             }
 
             return retObj;

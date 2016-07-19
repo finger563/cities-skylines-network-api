@@ -50,9 +50,46 @@ var methodTest = {
 };
 
 var intTest = {
+    'Method': 'GET',
+    'Object': {
+	'Name': 'm_currentFrameIndex',
+	'Type': 'MEMBER',
+	'IsStatic': false,
+	'Value': 154,
+	'ValueType': 'System.UInt32',
+	'Dependency': {
+	    'Name': 'instance',
+	    'IsStatic': true,
+	    'Type': 'MEMBER',
+	    'Dependency': {
+		'Assembly': 'Assembly-CSharp',
+		'Name': 'SimulationManager',
+		'Type': 'CLASS'
+	    }
+	}
+    }
 };
 
 var enumTest = {
+    'Method': 'GET',
+    'Object': {
+	'Name': 'm_currentFrameIndex',
+	'Type': 'MEMBER',
+	'IsStatic': false,
+	'Value': 1,
+	'ValueType': 'RoadBaseAI+TrafficLightState',
+	'Assembly': 'Assembly-CSharp',
+	'Dependency': {
+	    'Name': 'instance',
+	    'IsStatic': true,
+	    'Type': 'MEMBER',
+	    'Dependency': {
+		'Assembly': 'Assembly-CSharp',
+		'Name': 'SimulationManager',
+		'Type': 'CLASS'
+	    }
+	}
+    }
 };
 
 var test = frameTest;

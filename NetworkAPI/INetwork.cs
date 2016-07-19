@@ -40,6 +40,7 @@ namespace NetworkAPI
         public string Assembly { get; set; }
         public bool IsStatic { get; set; }
         public string Value { get; set; }
+        public string ValueType { get; set; }
         public IList<NetworkObject> Parameters { get; set; }
     }
 }
