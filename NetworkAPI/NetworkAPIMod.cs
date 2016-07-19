@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 using System.Threading;
-
 using Newtonsoft.Json;
 
 using System.Linq;
@@ -16,13 +15,6 @@ using ICities;
 using UnityEngine;
 using ColossalFramework.UI;
 using ColossalFramework.Plugins;
-
-using System.ServiceModel;
-using System.ServiceModel.Description;
-using System.ServiceModel.Web;
-using System.Web.Script.Serialization;
-
-using System.ServiceModel.Channels;
 
 namespace NetworkAPI
 {

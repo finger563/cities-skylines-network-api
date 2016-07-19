@@ -59,7 +59,7 @@ var methodTest = {
 		'ValueType': 'System.UInt32'
 	    },
 	    {
-		'Type': 'METHOD',
+		'Type': 'MEMBER',
 		'Name': 'ElementAt',
 		'IsStatic': false,
 		'Parameters': [

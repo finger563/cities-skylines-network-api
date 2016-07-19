@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 
 using System.ComponentModel;
-
 using Newtonsoft.Json;
 
 using System.Reflection;
-using System.Web.Script.Serialization;
 using System.Collections;
 using System.Collections.ObjectModel;
 
@@ -16,10 +14,6 @@ using ICities;
 using UnityEngine;
 using ColossalFramework.UI;
 using ColossalFramework.Plugins;
-
-using System.ServiceModel;
-using System.ServiceModel.Web;
-using System.ServiceModel.Channels;
 
 namespace NetworkAPI
 {
@@ -29,30 +23,34 @@ namespace NetworkAPI
         {
             object retObj = null;
             Request request;
+            // parse the message according to Request formatting
             try
             {
                 request = JsonConvert.DeserializeObject<Request>(jsonRequest);
-                if (request.Method == MethodType.GET)
-                {
-                    retObj = GetObject(request.Object);
-                }
-                else if (request.Method == MethodType.SET)
-                {
-                    
-                }
-                else if (request.Method == MethodType.EXECUTE)
-                {
-
-                }
-                else
-                {
-                    throw new Exception("Error: unsupported method type!");
-                }
             }
             catch (Exception e)
             {
                 throw new Exception("Error: request not properly formatted: " + e.Message);
             }
+
+            // got well formatted message, now process it
+            if (request.Method == MethodType.GET)
+            {
+                retObj = GetObject(request.Object);
+            }
+            else if (request.Method == MethodType.SET)
+            {
+
+            }
+            else if (request.Method == MethodType.EXECUTE)
+            {
+
+            }
+            else
+            {
+                throw new Exception("Error: unsupported method type!");
+            }
+
             return retObj;
         }
 
@@ -85,81 +83,30 @@ namespace NetworkAPI
             }
 
             /*
-            */
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
                 "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
-            /*
-            */
+                */
 
             // get object data now
             if (obj.Type == ObjectType.CLASS)
             {
                 Type t = GetAssemblyType(obj.Assembly, obj.Name);
+                if (t == null)
+                {
+                    throw new Exception("Couldn't get: " + obj.Name + " from assembly: " + obj.Assembly);
+                }
                 retObj = t;
             }
-            else if (obj.Type == ObjectType.MEMBER)
+            else if (obj.Type == ObjectType.MEMBER || obj.Type == ObjectType.METHOD)
             {
-                if (contextType != null)
-                {
-                    MemberInfo[] mia = contextType.GetMember(obj.Name);
-                    foreach (var mi in mia)
-                    {
-                        if (mi.MemberType == MemberTypes.Method)
-                        {
-                            MethodInfo methodInfo = (MethodInfo)mi;
-                            retObj = methodInfo.Invoke(ctx, null); // parameters
-                            break;
-                        }
-                        else if (mi.MemberType == MemberTypes.Property)
-                        {
-                            PropertyInfo pi = (PropertyInfo)mi;
-                            MethodInfo methodInfo = pi.GetAccessors()[0];
-                            retObj = methodInfo.Invoke(ctx, null); // parameters
-                            break;
-                        }
-                        else if (mi.MemberType == MemberTypes.Field)
-                        {
-                            FieldInfo fi = (FieldInfo)mi;
-                            retObj = fi.GetValue(ctx);
-                            break;
-                        }
-                    }
-                }
+                retObj = GetObjectMember(contextType, ctx, obj);
             }
             else if (obj.Type == ObjectType.PARAMETER) // do we need this type?
             {
             }
-            else if (obj.Type == ObjectType.METHOD)
-            {
-                if (contextType != null)
-                {
-                    // get parameters (if they exist)
-                    List<object> parameters = new List<object>();
-                    for (int i = 0; i < obj.Parameters.Count; i++)
-                    {
-                        object param = GetObject(obj.Parameters.ElementAt(i));
-                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-                            "Got parameter: " + param.ToString());
-                        parameters.Add(param);
-                    }
-                    // call the method here
-                    MethodInfo mi = contextType.GetMethod(obj.Name);
-                    if (mi != null)
-                    {
-                        if (mi.IsGenericMethod)
-                        {
-                            mi = mi.MakeGenericMethod(contextType);
-                        }
-                        retObj = mi.Invoke(ctx, parameters.ToArray()); // parameters
-                    }
-                    else
-                    {
-                        throw new Exception("Couldnt get method " + obj.Name + " from " + ctx);
-                    }
-                }
-            }
             else
             {
+                throw new Exception("Usupported object type: "+obj.Type);
             }
 
             // set the value of the object if it exists
@@ -178,6 +125,68 @@ namespace NetworkAPI
                 }
             }
 
+            return retObj;
+        }
+
+        public object GetObjectMember(Type contextType, object ctx, NetworkObject obj)
+        {
+            object retObj = null;
+            // make sure we have context!
+            if (contextType != null)
+            {
+                // get parameters (if they exist)
+                List<object> parameters = new List<object>();
+                if (obj.Parameters != null)
+                {
+                    for (int i = 0; i < obj.Parameters.Count; i++)
+                    {
+                        object param = GetObject(obj.Parameters.ElementAt(i));
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                            "Got parameter: " + param.ToString());
+                        parameters.Add(param);
+                    }
+                }
+                // now actually get the member
+                MemberInfo[] mia = contextType.GetMember(obj.Name);
+                foreach (var mi in mia)
+                {
+                    if (mi.MemberType == MemberTypes.Method)
+                    {
+                        MethodInfo methodInfo = (MethodInfo)mi;
+                        if (methodInfo != null)
+                        {
+                            if (methodInfo.IsGenericMethod)
+                            {
+                                methodInfo = ((MethodInfo)mi).MakeGenericMethod(contextType);
+                            }
+                            retObj = methodInfo.Invoke(ctx, parameters.ToArray());
+                        }
+                        break;
+                    }
+                    else if (mi.MemberType == MemberTypes.Property)
+                    {
+                        PropertyInfo pi = (PropertyInfo)mi;
+                        if (pi != null)
+                        {
+                            MethodInfo methodInfo = pi.GetAccessors()[0];
+                            if (methodInfo != null)
+                            {
+                                retObj = methodInfo.Invoke(ctx, null);
+                            }
+                        }
+                        break;
+                    }
+                    else if (mi.MemberType == MemberTypes.Field)
+                    {
+                        FieldInfo fi = (FieldInfo)mi;
+                        if (fi != null)
+                            {
+                            retObj = fi.GetValue(ctx);
+                        }
+                        break;
+                    }
+                }
+            }
             return retObj;
         }
 
