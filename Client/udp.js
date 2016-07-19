@@ -47,6 +47,93 @@ var bufferTest = {
 };
 
 var methodTest = {
+    'Method': 'GET',
+    'Object': {
+	'Name': 'GetTrafficLightState',
+	'Type': 'METHOD',
+	'IsStatic': false,
+	'Parameters': [
+	    {
+		'Type': 'PARAMETER',
+		'Value': 154,
+		'ValueType': 'System.UInt32'
+	    },
+	    {
+		'Type': 'METHOD',
+		'Name': 'ElementAt',
+		'IsStatic': false,
+		'Parameters': [
+		    {
+			'Type': 'PARAMETER',
+			'Value': 0,
+			'ValueType': 'System.UInt32'
+		    }
+		],
+		'Dependency': {
+		    'Name': 'm_buffer',
+		    'Type': 'MEMBER',
+		    'IsStatic': false,
+		    'Dependency': {
+			'Name': 'm_segments',
+			'Type': 'MEMBER',
+			'IsStatic': false,
+			'Dependency': {
+			    'Name': 'instance',
+			    'Type': 'MEMBER',
+			    'IsStatic': true,
+			    'Dependency': {
+				'Type': 'CLASS',
+				'Name': 'NetManager',
+				'Assembly': 'Assembly-CSharp'
+			    }
+			}
+		    }
+		}
+	    },
+	    {
+		'Name': 'm_currentFrameIndex',
+		'Type': 'MEMBER',
+		'IsStatic': false,
+		'Dependency': {
+		    'Name': 'instance',
+		    'IsStatic': true,
+		    'Type': 'MEMBER',
+		    'Dependency': {
+			'Name': 'SimulationManager',
+			'Assembly': 'Assembly-CSharp',
+			'Type': 'CLASS'
+		    }
+		}
+	    },
+	    {
+		'Type': 'PARAMETER',
+		'Value': 'GreenToRed',
+		'ValueType': 'RoadBaseAI+TrafficLightState',
+		'Assembly': 'Assembly-CSharp'
+	    },
+	    {
+		'Type': 'PARAMETER',
+		'Value': 'GreenToRed',
+		'ValueType': 'RoadBaseAI+TrafficLightState',
+		'Assembly': 'Assembly-CSharp'
+	    },
+	    {
+		'Type': 'PARAMETER',
+		'Value': false,
+		'ValueType': 'System.Boolean'
+	    },
+	    {
+		'Type': 'PARAMETER',
+		'Value': false,
+		'ValueType': 'System.Boolean'
+	    }
+	],
+	'Dependency': {
+	    'Name': 'RoadBaseAI',
+	    'Assembly': 'Assembly-CSharp',
+	    'Type': 'CLASS'
+	}
+    }
 };
 
 var intTest = {

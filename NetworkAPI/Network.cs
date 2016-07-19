@@ -85,8 +85,10 @@ namespace NetworkAPI
             }
 
             /*
+            */
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
-            "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
+                "Getting: " + obj.Name + " of type: " + obj.Type + " from context:" + ctx);
+            /*
             */
 
             // get object data now
@@ -136,12 +138,24 @@ namespace NetworkAPI
                     for (int i = 0; i < obj.Parameters.Count; i++)
                     {
                         object param = GetObject(obj.Parameters.ElementAt(i));
+                        DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                            "Got parameter: " + param.ToString());
                         parameters.Add(param);
                     }
                     // call the method here
                     MethodInfo mi = contextType.GetMethod(obj.Name);
-                    MethodInfo methodInfo = (MethodInfo)mi;
-                    retObj = methodInfo.Invoke(ctx, parameters.ToArray()); // parameters
+                    if (mi != null)
+                    {
+                        if (mi.IsGenericMethod)
+                        {
+                            mi = mi.MakeGenericMethod(contextType);
+                        }
+                        retObj = mi.Invoke(ctx, parameters.ToArray()); // parameters
+                    }
+                    else
+                    {
+                        throw new Exception("Couldnt get method " + obj.Name + " from " + ctx);
+                    }
                 }
             }
             else
