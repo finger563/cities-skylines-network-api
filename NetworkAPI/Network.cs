@@ -180,7 +180,7 @@ namespace NetworkAPI
                     {
                         FieldInfo fi = (FieldInfo)mi;
                         if (fi != null)
-                            {
+                        {
                             retObj = fi.GetValue(ctx);
                         }
                         break;
