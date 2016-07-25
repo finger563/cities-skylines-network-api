@@ -155,17 +155,71 @@ var enumTest = {
     }
 };
 
+var getStateTest = {
+    'Method': 'GETSTATE',
+    'Object': {
+	'Name': 'NodeId',
+	'Type': 'PARAMETER',
+	'Value': 0,  // should be 0 - 3 (for the selected ids)
+	'ValueType': 'System.UInt32'
+    }
+};
+
+var getDensityTest = {
+    'Method': 'GETDENSITY',
+    'Object': {
+	'Name': 'NodeId',
+	'Type': 'PARAMETER',
+	'Value': 0,  // should be 0 - 3 (for the selected ids)
+	'ValueType': 'System.UInt32',
+	'Parameters': [
+	    {
+		'Name': 'SegmentId',
+		'Type': 'PARAMETER',
+		'Value': 0,
+		'ValueType': 'System.UInt32'
+	    }
+	]
+    }
+};
+
+var setStateTest = {
+    'Method': 'SETSTATE',
+    'Object': {
+	'Name': 'NodeId',
+	'Type': 'PARAMETER',
+	'Value': 0,  // should be 0 - 3 (for the selected ids)
+	'ValueType': 'System.UInt32'
+    }
+};
+
 var test = frameTest;
 
 if (process.argv[2]) {
-    if (process.argv[2] == "buffer")
+    if (process.argv[2] == "buffer") {
 	test = bufferTest;
-    else if (process.argv[2] == "method")
+    }
+    else if (process.argv[2] == "method") {
 	test = methodTest;
-    else if (process.argv[2] == "int")
+    }
+    else if (process.argv[2] == "int") {
 	test = intTest;
-    else if (process.argv[2] == "enum")
+    }
+    else if (process.argv[2] == "enum") {
 	test = enumTest;
+    }
+    else if (process.argv[2] == "getState") {
+	if (process.argv[3])
+	    getStateTest.Object.Value = process.argv[3];
+	test = getStateTest;
+    }
+    else if (process.argv[2] == "getDensity") {
+	if (process.argv[3])
+	    getDensityTest.Object.Value = process.argv[3];
+	if (process.argv[4])
+	    getDensityTest.Object.Parameters[0].Value = process.argv[4];
+	test = getDensityTest;
+    }
 }
 
 var testMessage = new Buffer(
