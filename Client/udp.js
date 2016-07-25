@@ -189,7 +189,27 @@ var setStateTest = {
 	'Name': 'NodeId',
 	'Type': 'PARAMETER',
 	'Value': 0,  // should be 0 - 3 (for the selected ids)
-	'ValueType': 'System.UInt32'
+	'ValueType': 'System.UInt32',
+	'Parameters': [
+	    {
+		'Name': 'SegmentId',
+		'Type': 'PARAMETER',
+		'Value': 0,
+		'ValueType': 'System.UInt32'
+	    },
+	    {
+		'Name': 'VehicleState',
+		'Type': 'PARAMETER',
+		'Value': "Red",
+		'ValueType': 'System.String'
+	    },
+	    {
+		'Name': 'PedestrianState',
+		'Type': 'PARAMETER',
+		'Value': "Red",
+		'ValueType': 'System.String'
+	    }
+	]
     }
 };
 
@@ -219,6 +239,15 @@ if (process.argv[2]) {
 	if (process.argv[4])
 	    getDensityTest.Object.Parameters[0].Value = process.argv[4];
 	test = getDensityTest;
+    }
+    else if (process.argv[2] == "setState") {
+	if (process.argv[3])
+	    setStateTest.Object.Value = process.argv[3];
+	if (process.argv[4])
+	    setStateTest.Object.Parameters[0].Value = process.argv[4];
+	if (process.argv[5])
+	    setStateTest.Object.Parameters[1].Value = process.argv[5];
+	test = setStateTest;
     }
 }
 
